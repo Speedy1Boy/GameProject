@@ -1,9 +1,15 @@
-﻿namespace GameProject;
+﻿using System;
 
-public class Program
+namespace GameProject;
+
+public static class Program
 {
-    public static void Main(string[] args)
+    [STAThread]
+    private static void Main(string[] args)
     {
-        Console.WriteLine("Bruh");
+        //using var game = new GameCycleView();
+        //game.Run();
+        var g = new GameplayPresenter(new GameCycleView(), new GameCycle());
+        g.LaunchGame();
     }
 }
