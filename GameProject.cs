@@ -24,6 +24,7 @@ public class GameProject : Game
         _graphics.PreferredBackBufferWidth = 800;
         _graphics.PreferredBackBufferHeight = 800;
         _graphics.ApplyChanges();
+        Window.Title = "Firefighter simulator";
         base.Initialize();
     }
 
@@ -34,6 +35,7 @@ public class GameProject : Game
         tiles.Add(Content.Load<Texture2D>("DeadGrass"));
         tiles.Add(Content.Load<Texture2D>("Tree"));
         tiles.Add(Content.Load<Texture2D>("Wood"));
+        tiles.Add(Content.Load<Texture2D>("Plant"));
         tiles.Add(Content.Load<Texture2D>("Water"));
         tiles.Add(Content.Load<Texture2D>("Cliff"));
         tiles.Add(Content.Load<Texture2D>("Fire"));
@@ -47,6 +49,7 @@ public class GameProject : Game
         if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
             Exit();
         player.Update();
+        map.Update();
         base.Update(gameTime);
     }
 

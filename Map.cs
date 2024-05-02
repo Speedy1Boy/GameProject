@@ -9,6 +9,7 @@ struct Tile
 {
     public int ImageId;
     public Rectangle Collider;
+    public int FireCounter;
 }
 
 internal class Map
@@ -18,6 +19,9 @@ internal class Map
     public List<Texture2D> Tiles;
     public Tile[][] Grid;
     private readonly Random r;
+    private int tick;
+    private int windPow;
+    private int windDir = -1;
 
     public Map(int size, List<Texture2D> tiles)
     {
@@ -48,26 +52,28 @@ internal class Map
                 spriteBatch.Draw(Tiles[Grid[i][j].ImageId], new Vector2(i * TileSize, j * TileSize), Color.White);
     }
 
+    public void Update()
+    {
+        if (tick % 50 == 0) GenerateTree();
+        if (tick % 100 == 0) UpdateGrass();
+        if (tick % 50 == 0) StartFire();
+        if (tick % 40 == 0) UpdateFire();
+        if (tick % 500 == 0)
+        {
+            windDir = (int)RandDir();
+            windPow = RandSymbol(10);
+        }
+        tick++;
+    }
+
     public void GenerateForest(double prob)
     {
         for (var i = 0; i < Size; i++)
             for (var j = 0; j < Size; j++)
-                if (Rand(prob)) UpdateTile(i, j, RandSymbol(2) + 2);
+                if (Rand(prob)) UpdateTile(i, j, RandSymbol(3) + 2);
     }
 
     public void GenerateLake(int length = 1)
-    {
-        var (rx, ry) = RandCell(Size, Size);
-        UpdateTile(rx, ry, 4);
-        for (var i = 0; i < length; i++)
-        {
-            (rx, ry) = Neighbour(rx, ry);
-            if (CheckBounds(rx, ry)) UpdateTile(rx, ry, 4);
-            else break;
-        }
-    }
-
-    public void GenerateMountain(int length = 1)
     {
         var (rx, ry) = RandCell(Size, Size);
         UpdateTile(rx, ry, 5);
@@ -79,14 +85,26 @@ internal class Map
         }
     }
 
+    public void GenerateMountain(int length = 1)
+    {
+        var (rx, ry) = RandCell(Size, Size);
+        UpdateTile(rx, ry, 6);
+        for (var i = 0; i < length; i++)
+        {
+            (rx, ry) = Neighbour(rx, ry);
+            if (CheckBounds(rx, ry)) UpdateTile(rx, ry, 6);
+            else break;
+        }
+    }
+
     public void GenerateStraightRiver(Direction dir)
     {
         var (rx, ry) = RandCellBorderDir(Size, Size, dir);
-        UpdateTile(rx, ry, 4);
+        UpdateTile(rx, ry, 5);
         while (true)
         {
             (rx, ry) = RiverNeighbour(rx, ry, (int)dir);
-            if (CheckBounds(rx, ry)) UpdateTile(rx, ry, 4);
+            if (CheckBounds(rx, ry)) UpdateTile(rx, ry, 5);
             else break;
         }
     }
@@ -95,15 +113,68 @@ internal class Map
     {
         var (x, y) = RandCell(Size, Size);
         var tileId = Grid[x][y].ImageId;
-        if (2 <= tileId && tileId <= 3)
-            UpdateTile(x, y, 6);
+        if (2 <= tileId && tileId <= 4)
+            UpdateTile(x, y, 7);
+    }
+
+    public bool CanBurn(int x, int y) => 2 <= Grid[x][y].ImageId && Grid[x][y].ImageId <= 4;
+
+    public double Wind(int dir)
+    {
+        if (windPow == 0 || dir == -1)
+            return 1;
+        if (windDir == dir)
+            return windPow + 1;
+        if (OppositDir(windDir) == dir)
+            return 1 / (windPow + 1);
+        return Math.Max((windPow + 1) / 2, 1);
+    }
+
+    public void UpdateFire()
+    {
+        var fire = new List<(int x, int y)>();
+        for (var x = 0; x < Size; x++)
+            for (var y = 0; y < Size; y++)
+                if (Grid[x][y].ImageId == 7)
+                {
+                    fire.Add((x, y));
+                    UpdateTile(x, y, 7);
+                    Grid[x][y].FireCounter++;
+                    if (Grid[x][y].FireCounter >= 15)
+                        UpdateTile(x, y, 1);
+                }
+        foreach (var (x, y) in fire)
+            for (var i = 0; i < 4; i++)
+            {
+                var nx = x + moves[i].x;
+                var ny = y + moves[i].y;
+                if (Rand(10 * Wind(i)) && CheckBounds(nx, ny) && CanBurn(nx, ny))
+                {
+                    UpdateTile(nx, ny, 7);
+                    Grid[nx][ny].FireCounter++;
+                }
+            }
     }
 
     public void GenerateTree()
     {
         var (x, y) = RandCell(Size, Size);
         if (Grid[x][y].ImageId == 0)
-            UpdateTile(x, y, RandSymbol(2) + 2);
+            UpdateTile(x, y, RandSymbol(3) + 2);
+    }
+
+    public void UpdateGrass()
+    {
+        for (var x = 0; x < Size; x++)
+            for (var y = 0; y < Size; y++)
+                if (Grid[x][y].ImageId == 0)
+                    for (var i = 0; i < 4; i++)
+                    {
+                        var nx = x + moves[i].x;
+                        var ny = y + moves[i].y;
+                        if (Rand(15) && CheckBounds(nx, ny) && Grid[nx][ny].ImageId == 1)
+                            UpdateTile(nx, ny, 0);
+                    }
     }
 
     public void UpdateTile(int x, int y, int id)
@@ -120,7 +191,7 @@ internal class Map
 
     public (int, int) RandCell(int x, int y) => (r.Next(x), r.Next(y));
 
-    private readonly (int, int)[] moves = new[] { (0, 1), (0, -1), (1, 0), (-1, 0) };
+    private readonly (int x, int y)[] moves = new[] { (0, 1), (0, -1), (1, 0), (-1, 0) };
 
     public enum Direction
     {
@@ -133,7 +204,7 @@ internal class Map
     public (int, int) Neighbour(int x, int y)
     {
         var move = moves[r.Next(4)];
-        return (x + move.Item1, y + move.Item2);
+        return (x + move.x, y + move.y);
     }
 
     public (int, int) RandCellBorderDir(int h, int w, Direction dir)
@@ -148,9 +219,15 @@ internal class Map
 
     public (int, int) RiverNeighbour(int x, int y, int ban)
     {
-        var mBanned = new List<(int, int)>(moves);
+        var mBanned = new List<(int x, int y)>(moves);
         mBanned.RemoveAt(ban);
         var move = mBanned[r.Next(3)];
-        return (x + move.Item1, y + move.Item2);
+        return (x + move.x, y + move.y);
+    }
+
+    public int OppositDir(int dir)
+    {
+        if (dir == 0 || dir == 2) return dir++;
+        return dir--;
     }
 }

@@ -9,15 +9,23 @@ internal class Player
     private readonly Texture2D texture;
     private Vector2 position;
     private Vector2 velocity;
-    private float speed;
-    private readonly int maxSpeed;
     private readonly Map map;
+    public Vector2 Velocity
+    {
+        get { return velocity; }
+        set
+        {
+            velocity = value;
+            if (velocity.X > 4) velocity.X = 4;
+            else if (velocity.X < -4) velocity.X = -4;
+            else if (velocity.Y > 4) velocity.Y = 4;
+            else if (velocity.Y < -4) velocity.Y = -4;
+        }
+    }
 
     public Player(Texture2D texture, Map map)
     {
         this.texture = texture;
-        speed = 0;
-        maxSpeed = 4;
         this.map = map;
     }
 
@@ -25,51 +33,43 @@ internal class Player
     {
         if (Keyboard.GetState().IsKeyDown(Keys.W))
         {
-            if (position.Y > 0)
-            {
-                velocity.Y -= 1;
-                if (speed < maxSpeed) speed += 0.1f;
-            }
+            Velocity -= new Vector2(0, 0.1f);
         }
         if (Keyboard.GetState().IsKeyDown(Keys.S))
         {
-            if (position.Y < (map.Size - 1) * map.TileSize)
-            {
-                velocity.Y += 1;
-                if (speed < maxSpeed) speed += 0.1f;
-            }
+            Velocity += new Vector2(0, 0.1f);
         }
         if (Keyboard.GetState().IsKeyDown(Keys.A))
         {
-            if (position.X > 0)
-            {
-                velocity.X -= 1;
-                if (speed < maxSpeed) speed += 0.1f;
-            }
+            Velocity -= new Vector2(0.1f, 0);
         }
         if (Keyboard.GetState().IsKeyDown(Keys.D))
         {
-            if (position.X < (map.Size - 1) * map.TileSize)
-            {
-                velocity.X += 1;
-                if (speed < maxSpeed) speed += 0.1f;
-            }
+            Velocity += new Vector2(0.1f, 0);
         }
-        if (Keyboard.GetState().IsKeyUp(Keys.W) &&
-            Keyboard.GetState().IsKeyUp(Keys.S) &&
-            Keyboard.GetState().IsKeyUp(Keys.A) &&
-            Keyboard.GetState().IsKeyUp(Keys.D))
+
+        if (Keyboard.GetState().IsKeyUp(Keys.W))
         {
-            if (speed > 0) speed -= 0.1f;
-            else if (speed >= float.MinValue) velocity = Vector2.Zero;
+            if (Velocity.Y < 0) Velocity += new Vector2(0, 0.1f);
+        }
+        if (Keyboard.GetState().IsKeyUp(Keys.S))
+        {
+            if (Velocity.Y > 0) Velocity -= new Vector2(0, 0.1f);
+            if (Velocity.Y < 0 && Velocity.Y > -0.1f) velocity.Y = 0;
+        }
+        if (Keyboard.GetState().IsKeyUp(Keys.A))
+        {
+            if (Velocity.X < 0) Velocity += new Vector2(0.1f, 0);
+        }
+        if (Keyboard.GetState().IsKeyUp(Keys.D))
+        {
+            if (Velocity.X > 0) Velocity -= new Vector2(0.1f, 0);
+            if (Velocity.X < 0 && Velocity.X > -0.1f) velocity.X = 0;
         }
 
-        if (velocity != Vector2.Zero)
-            velocity.Normalize();
-
-        var oldPosition = position;
-        position += velocity * speed;
-        CheckCollisions(oldPosition);
+        position += Velocity;
+        CheckCollisions();
+        CheckCoordinatesInMap();
     }
 
     public void Draw(SpriteBatch spriteBatch)
@@ -77,41 +77,38 @@ internal class Player
         spriteBatch.Draw(texture, position, Color.White);
     }
 
-    public void CheckCollisions(Vector2 oldPosition)
+    public void CheckCoordinatesInMap()
+    {
+        var maxCord = (map.Size - 1) * map.TileSize;
+        if (position.X < 0) position.X = 0;
+        if (position.Y < 0) position.Y = 0;
+        if (position.X > maxCord) position.X = maxCord;
+        if (position.Y > maxCord) position.Y = maxCord;
+    }
+
+    public void CheckCollisions()
     {
         var playerCollider = new Rectangle((int)position.X, (int)position.Y, map.TileSize, map.TileSize);
-        var newPos = position + velocity;
-        var newRect = new Rectangle((int)newPos.X, (int)newPos.Y, map.TileSize, map.TileSize);
         for (var x = 0; x < map.Size; x++)
             for (var y = 0; y < map.Size; y++)
-                if (map.Grid[x][y].ImageId == 5)
+            {
+                var objectCollider = map.Grid[x][y].Collider;
+                if (map.Grid[x][y].ImageId == 6)
                 {
-                    var collider = map.Grid[x][y].Collider;
-                    if (newPos.X != position.X)
+                    if (playerCollider.Intersects(objectCollider))
                     {
-                        newRect = new Rectangle((int)newPos.X, (int)position.Y, map.TileSize, map.TileSize);
-                        if (newRect.Intersects(collider))
-                        {
-                            if (newPos.X > position.X)
-                                newPos.X = collider.Left - playerCollider.Width;
-                            else
-                                newPos.X = collider.Right;
-                            continue;
-                        }
+                        position -= velocity;
+                        Velocity = Vector2.Zero;
                     }
-                    if (newPos.Y != position.Y)
-                    {
-                        newRect = new Rectangle((int)position.X, (int)newPos.Y, map.TileSize, map.TileSize);
-                        if (newRect.Intersects(collider))
-                        {
-                            if (newPos.Y > position.Y)
-                                newPos.Y = collider.Top - playerCollider.Height;
-                            else
-                                newPos.Y = collider.Bottom;
-                        }
-                    }
-
                 }
-        position = newPos;
+                if (map.Grid[x][y].ImageId == 7)
+                {
+
+                    if (playerCollider.Intersects(objectCollider))
+                    {
+                        map.UpdateTile(x, y, 0);
+                    }
+                }
+            }
     }
 }
