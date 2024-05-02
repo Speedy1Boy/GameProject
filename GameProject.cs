@@ -46,9 +46,6 @@ public class GameProject : Game
     {
         if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
             Exit();
-        if (Keyboard.GetState().IsKeyDown(Keys.Space))
-        {
-        }
         player.Update();
         base.Update(gameTime);
     }
