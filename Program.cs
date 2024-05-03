@@ -1,3 +1,3 @@
 ﻿
-using var game = new ReworkedGame.GameProject();
+using var game = new GameProject.FirefighterSimulator();
 game.Run();

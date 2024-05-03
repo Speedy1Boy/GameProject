@@ -2,14 +2,14 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
-namespace ReworkedGame;
+namespace GameProject;
 
 internal class Player
 {
     private readonly Texture2D texture;
+    private readonly Map map;
     private Vector2 position;
     private Vector2 velocity;
-    private readonly Map map;
     public Vector2 Velocity
     {
         get { return velocity; }
@@ -55,7 +55,7 @@ internal class Player
         if (Keyboard.GetState().IsKeyUp(Keys.S))
         {
             if (Velocity.Y > 0) Velocity -= new Vector2(0, 0.1f);
-            if (Velocity.Y < 0 && Velocity.Y > -0.1f) velocity.Y = 0;
+            if (Velocity.Y < 0 && Velocity.Y > -0.1f) Velocity = new Vector2(Velocity.X, 0);
         }
         if (Keyboard.GetState().IsKeyUp(Keys.A))
         {
@@ -64,7 +64,7 @@ internal class Player
         if (Keyboard.GetState().IsKeyUp(Keys.D))
         {
             if (Velocity.X > 0) Velocity -= new Vector2(0.1f, 0);
-            if (Velocity.X < 0 && Velocity.X > -0.1f) velocity.X = 0;
+            if (Velocity.X < 0 && Velocity.X > -0.1f) Velocity = new Vector2(0, Velocity.Y);
         }
 
         position += Velocity;
@@ -81,8 +81,8 @@ internal class Player
     {
         var maxCord = (map.Size - 1) * map.TileSize;
         if (position.X < 0) position.X = 0;
-        if (position.Y < 0) position.Y = 0;
         if (position.X > maxCord) position.X = maxCord;
+        if (position.Y < 0) position.Y = 0;
         if (position.Y > maxCord) position.Y = maxCord;
     }
 
@@ -103,10 +103,9 @@ internal class Player
                 }
                 if (map.Grid[x][y].ImageId == 7)
                 {
-
                     if (playerCollider.Intersects(objectCollider))
                     {
-                        map.UpdateTile(x, y, 0);
+                        map.Grid[x][y].UpdateTile(x, y, 0, map.TileSize);
                     }
                 }
             }
