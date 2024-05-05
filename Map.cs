@@ -49,7 +49,7 @@ internal class Map
         for (var i = 0; i < 7; i++) GenerateMountain(50);
         GenerateStraightRiver(RandDir());
         windDir = RandDir();
-        windPow = RandSymbol(10);
+        windPow = RandSymbol(7);
     }
 
     public void Draw(SpriteBatch spriteBatch)
@@ -62,14 +62,14 @@ internal class Map
     public void Update(Clouds clouds)
     {
         cloudMap = clouds.cloudMap;
-        if (tick % 50 == 0) GenerateTree();
-        if (tick % 100 == 0) UpdateGrass();
-        if (tick % 50 == 0) StartFire();
-        if (tick % 40 == 0) UpdateFire();
-        if (tick % 500 == 0)
+        if (tick % 150 == 0) GenerateTree();
+        if (tick % 300 == 0) UpdateGrass();
+        if (tick % 150 == 0) StartFire();
+        if (tick % 120 == 0) UpdateFire();
+        if (tick % 1500 == 0)
         {
             windDir = RandDir();
-            windPow = RandSymbol(10);
+            windPow = RandSymbol(7);
         }
         if (tick % WindPowerClouds() == 0)
             clouds.MoveCloud(windDir);

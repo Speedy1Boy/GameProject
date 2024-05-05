@@ -1,19 +1,17 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
-using System.Drawing;
 using static GameProject.Utils;
-using Color = Microsoft.Xna.Framework.Color;
 
 namespace GameProject;
 
 internal class Clouds
 {
-    private int size;
-    private int tileSize;
-    private List<Texture2D> textureList;
-    private int rainCH;
-    private int thunderCH;
+    private readonly int size;
+    private readonly int tileSize;
+    private readonly List<Texture2D> textureList;
+    private readonly int rainProb;
+    private readonly int thunderProb;
     public Tile[][] cloudMap;
 
     public Clouds(int size, List<Texture2D> textureList)
@@ -22,8 +20,8 @@ internal class Clouds
         this.textureList = textureList;
         tileSize = 16;
 
-        rainCH = 20;
-        thunderCH = 30;
+        rainProb = 20;
+        thunderProb = 30;
 
         cloudMap = new Tile[size][];
         for (var i = 0; i < size; i++)
@@ -49,9 +47,9 @@ internal class Clouds
                 if (Rand(prob))
                 {
                     cloudMap[i][j].UpdateTile(i, j, 1, tileSize);
-                    if (Rand(rainCH))
+                    if (Rand(rainProb))
                         cloudMap[i][j].UpdateTile(i, j, 2, tileSize);
-                    if (cloudMap[i][j].ImageId == 2 && Rand(thunderCH))
+                    if (cloudMap[i][j].ImageId == 2 && Rand(thunderProb))
                         cloudMap[i][j].UpdateTile(i, j, 3, tileSize);
                 }
     }
@@ -62,9 +60,9 @@ internal class Clouds
         {
             var (x, y) = RandCellBorderDir(size, size, dir);
             cloudMap[x][y].UpdateTile(x, y, 1, tileSize);
-            if (Rand(rainCH))
+            if (Rand(rainProb))
                 cloudMap[x][y].UpdateTile(x, y, 2, tileSize);
-            if (cloudMap[x][y].ImageId == 2 && Rand(thunderCH))
+            if (cloudMap[x][y].ImageId == 2 && Rand(thunderProb))
                 cloudMap[x][y].UpdateTile(x, y, 3, tileSize);
         }
     }

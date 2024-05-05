@@ -1,6 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System.Collections.Generic;
+using static GameProject.Utils;
 
 namespace GameProject;
 
@@ -12,7 +14,7 @@ internal class Player
     private Vector2 velocity;
     public Vector2 Velocity
     {
-        get { return velocity; }
+        get => velocity;
         set
         {
             velocity = value;
@@ -27,6 +29,7 @@ internal class Player
     {
         this.texture = texture;
         this.map = map;
+        position = SpawnNearRiver();
     }
 
     public void Update()
@@ -51,6 +54,7 @@ internal class Player
         if (Keyboard.GetState().IsKeyUp(Keys.W))
         {
             if (Velocity.Y < 0) Velocity += new Vector2(0, 0.1f);
+            if (Velocity.Y > 0 && Velocity.Y < 0.1f) Velocity = new Vector2(Velocity.X, 0);
         }
         if (Keyboard.GetState().IsKeyUp(Keys.S))
         {
@@ -60,6 +64,7 @@ internal class Player
         if (Keyboard.GetState().IsKeyUp(Keys.A))
         {
             if (Velocity.X < 0) Velocity += new Vector2(0.1f, 0);
+            if (Velocity.X > 0 && Velocity.X < 0.1f) Velocity = new Vector2(0, Velocity.Y);
         }
         if (Keyboard.GetState().IsKeyUp(Keys.D))
         {
@@ -109,5 +114,15 @@ internal class Player
                     }
                 }
             }
+    }
+
+    public Vector2 SpawnNearRiver()
+    {
+        var river = new List<Vector2>();
+        for (var x = 0; x < map.Size; x++)
+            for (var y = 0; y < map.Size; y++)
+                if (map.Grid[x][y].ImageId == 5)
+                    river.Add(new Vector2(x * map.TileSize, y * map.TileSize));
+        return river[RandSymbol(river.Count)];
     }
 }

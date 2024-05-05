@@ -2,19 +2,19 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System.Collections.Generic;
-using System.Threading;
 
 namespace GameProject;
 
 public class FirefighterSimulator : Game
 {
-    private GraphicsDeviceManager _graphics;
+    private readonly GraphicsDeviceManager _graphics;
     private SpriteBatch _spriteBatch;
-    private List<Texture2D> mapTiles = new();
-    private List<Texture2D> cloudTiles = new();
+    private readonly List<Texture2D> mapTiles = new();
+    private readonly List<Texture2D> cloudTiles = new();
     private Map map;
     private Player player;
     private Clouds clouds;
+
     public FirefighterSimulator()
     {
         _graphics = new GraphicsDeviceManager(this);
