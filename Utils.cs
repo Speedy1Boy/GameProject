@@ -3,25 +3,17 @@ using System.Collections.Generic;
 
 namespace GameProject;
 
-public static class Utils
+public class Utils
 {
     private static readonly Random r = new();
 
     public static readonly (int x, int y)[] moves = new[] { (0, -1), (0, 1), (-1, 0), (1, 0) };
 
-    public enum Direction
-    {
-        Up,
-        Down,
-        Left,
-        Right
-    }
-
-    public static bool CheckBounds(int x, int y, int size) => 0 <= x && x < size && 0 <= y && y < size;
+    public static bool CheckBounds(int x, int y, int width, int height) => x >= 0 && x < width && y >= 0 && y < height;
 
     public static bool Rand(double prob) => r.NextDouble() < prob / 100;
 
-    public static int RandSymbol(int n) => r.Next(n);
+    public static int RandNumber(int n) => r.Next(n);
 
     public static (int, int) RandCell(int x, int y) => (r.Next(x), r.Next(y));
 
@@ -31,7 +23,7 @@ public static class Utils
         return (x + move.x, y + move.y);
     }
 
-    public static (int, int) RandCellBorderDir(int w, int h, Direction dir)
+    public static (int, int) RandBorderCell(int w, int h, Direction dir)
     {
         if (dir == Direction.Up) return (r.Next(w), h - 1);
         if (dir == Direction.Down) return (r.Next(w), 0);
@@ -43,9 +35,9 @@ public static class Utils
 
     public static (int, int) RiverNeighbor(int x, int y, int ban)
     {
-        var mBanned = new List<(int x, int y)>(moves);
-        mBanned.RemoveAt(ban);
-        var move = mBanned[r.Next(3)];
+        var bannedMove = new List<(int x, int y)>(moves);
+        bannedMove.RemoveAt(ban);
+        var move = bannedMove[r.Next(3)];
         return (x + move.x, y + move.y);
     }
 

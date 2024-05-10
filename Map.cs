@@ -6,202 +6,220 @@ using static GameProject.Utils;
 
 namespace GameProject;
 
-struct Tile
-{
-    public int ImageId;
-    public Rectangle Collider;
-    public int FireCounter;
-
-    public void UpdateTile(int x, int y, int id, int tileSize)
-    {
-        ImageId = id;
-        Collider = new Rectangle(x * tileSize, y * tileSize, tileSize, tileSize);
-    }
-}
-
 internal class Map
 {
-    public int Size;
-    public int TileSize;
-    public List<Texture2D> Tiles;
-    public Tile[][] Grid;
-    private int tick;
-    private int windPow;
-    private Direction windDir;
-    private Tile[][] cloudMap;
+    private int windPower;
+    private Direction windDirection;
 
-    public Map(int size, List<Texture2D> tiles)
+    public int Width { get; private set; }
+    public int Height { get; private set; }
+    public List<Texture2D> Tiles { get; }
+    public int TileSize { get; }
+    public Tile[][] Grid { get; }
+    public Tile[][] CloudMap { get; private set; }
+    public Vector2 SpawnCoords { get; private set; }
+    public SpriteFont Font { get; }
+
+    public Map(int width, int height, List<Texture2D> tiles, SpriteFont font)
     {
-        Size = size;
+        Width = width;
+        Height = height;
         Tiles = tiles;
         TileSize = 16;
+        Font = font;
 
-        Grid = new Tile[size][];
-        for (var x = 0; x < size; x++)
+        Grid = new Tile[height][];
+        for (var y = 0; y < height; y++)
         {
-            Grid[x] = new Tile[size];
-            for (var y = 0; y < size; y++)
-                Grid[x][y].ImageId = 0;
+            Grid[y] = new Tile[width];
+            for (var x = 0; x < width; x++)
+                Grid[y][x].UpdateTile(x, y, 0, TileSize);
         }
 
         GenerateForest(85);
         for (var i = 0; i < 5; i++) GenerateLake(100);
         for (var i = 0; i < 7; i++) GenerateMountain(50);
         GenerateStraightRiver(RandDir());
-        windDir = RandDir();
-        windPow = RandSymbol(7);
+        GenerateNearRiver(8);
+        SpawnCoords = GenerateNearRiver(9);
+
+        windDirection = RandDir();
+        windPower = RandNumber(10);
+    }
+
+    public void Update(TimeSpan gameTime, CloudMap clouds)
+    {
+        var tick = gameTime.Ticks;
+        CloudMap = clouds.Map;
+
+        if (tick % 250 == 0) GenerateTree();
+        if (tick % 500 == 0) UpdateGrass();
+        if (tick % 250 == 0) StartFire();
+        if (tick % 200 == 0) UpdateFire();
+
+        if (tick % 2500 == 0)
+        {
+            windDirection = RandDir();
+            windPower = RandNumber(10);
+        }
+
+        if (tick % WindPowerClouds() == 0)
+            clouds.MoveCloud(windDirection);
+        if (tick % 25 == 0) ProcessCloud();
     }
 
     public void Draw(SpriteBatch spriteBatch)
     {
-        for (var i = 0; i < Size; i++)
-            for (var j = 0; j < Size; j++)
-                spriteBatch.Draw(Tiles[Grid[i][j].ImageId], new Vector2(i * TileSize, j * TileSize), Color.White);
-    }
+        for (var i = 0; i < Width; i++)
+            for (var j = 0; j < Height; j++)
+                spriteBatch.Draw(Tiles[Grid[j][i].ImageId], new Vector2(i * TileSize, j * TileSize), Color.White);
 
-    public void Update(Clouds clouds)
-    {
-        cloudMap = clouds.cloudMap;
-        if (tick % 150 == 0) GenerateTree();
-        if (tick % 300 == 0) UpdateGrass();
-        if (tick % 150 == 0) StartFire();
-        if (tick % 120 == 0) UpdateFire();
-        if (tick % 1500 == 0)
-        {
-            windDir = RandDir();
-            windPow = RandSymbol(7);
-        }
-        if (tick % WindPowerClouds() == 0)
-            clouds.MoveCloud(windDir);
-        if (tick % 5 == 0) ProcessCloud();
-        tick++;
+        var stats = $"Wind direction is {windDirection}, wind power is {windPower + 1}";
+        spriteBatch.DrawString(Font, stats, CalculateTextPos(1, 3), Color.White);
     }
 
     public void GenerateForest(double prob)
     {
-        for (var i = 0; i < Size; i++)
-            for (var j = 0; j < Size; j++)
+        for (var i = 0; i < Width; i++)
+            for (var j = 0; j < Height; j++)
                 if (Rand(prob))
-                    Grid[i][j].UpdateTile(i, j, RandSymbol(3) + 2, TileSize);
+                    Grid[j][i].UpdateTile(i, j, RandNumber(3) + 2, TileSize);
     }
 
     public void GenerateLake(int length = 1)
     {
-        var (rx, ry) = RandCell(Size, Size);
-        Grid[rx][ry].UpdateTile(rx, ry, 5, TileSize);
+        var (rX, rY) = RandCell(Width, Height);
+        Grid[rY][rX].UpdateTile(rX, rY, 5, TileSize);
         for (var i = 0; i < length; i++)
         {
-            (rx, ry) = Neighbor(rx, ry);
-            if (CheckBounds(rx, ry, Size))
-                Grid[rx][ry].UpdateTile(rx, ry, 5, TileSize);
+            (rX, rY) = Neighbor(rX, rY);
+            if (CheckBounds(rX, rY, Width, Height))
+                Grid[rY][rX].UpdateTile(rX, rY, 5, TileSize);
             else break;
         }
     }
 
     public void GenerateMountain(int length = 1)
     {
-        var (rx, ry) = RandCell(Size, Size);
-        Grid[rx][ry].UpdateTile(rx, ry, 6, TileSize);
+        var (rX, rY) = RandCell(Width, Height);
+        Grid[rY][rX].UpdateTile(rX, rY, 6, TileSize);
         for (var i = 0; i < length; i++)
         {
-            (rx, ry) = Neighbor(rx, ry);
-            if (CheckBounds(rx, ry, Size))
-                Grid[rx][ry].UpdateTile(rx, ry, 6, TileSize);
+            (rX, rY) = Neighbor(rX, rY);
+            if (CheckBounds(rX, rY, Width, Height))
+                Grid[rY][rX].UpdateTile(rX, rY, 6, TileSize);
             else break;
         }
     }
 
     public void GenerateStraightRiver(Direction dir)
     {
-        var (rx, ry) = RandCellBorderDir(Size, Size, GetOppositDir(dir));
-        Grid[rx][ry].UpdateTile(rx, ry, 5, TileSize);
+        var (rX, rY) = RandBorderCell(Width, Height, GetOppositDir(dir));
+        Grid[rY][rX].UpdateTile(rX, rY, 5, TileSize);
         while (true)
         {
-            (rx, ry) = RiverNeighbor(rx, ry, (int)dir);
-            if (CheckBounds(rx, ry, Size))
-                Grid[rx][ry].UpdateTile(rx, ry, 5, TileSize);
+            (rX, rY) = RiverNeighbor(rX, rY, (int)dir);
+            if (CheckBounds(rX, rY, Width, Height))
+                Grid[rY][rX].UpdateTile(rX, rY, 5, TileSize);
             else break;
         }
     }
 
     public void StartFire()
     {
-        var (x, y) = RandCell(Size, Size);
-        var tileId = Grid[x][y].ImageId;
+        var (x, y) = RandCell(Width, Height);
+        var tileId = Grid[y][x].ImageId;
         if (2 <= tileId && tileId <= 4)
-            Grid[x][y].UpdateTile(x, y, 7, TileSize);
+            Grid[y][x].UpdateTile(x, y, 7, TileSize);
     }
 
-    public bool CanBurn(int x, int y) => 2 <= Grid[x][y].ImageId && Grid[x][y].ImageId <= 4;
+    public bool CanBurn(int x, int y) => Grid[y][x].ImageId >= 2 && Grid[y][x].ImageId <= 4;
 
     public double Wind(Direction dir)
     {
-        if (windPow == 0)
+        if (windPower == 0)
             return 1;
-        if (windDir == dir)
-            return windPow + 1;
-        if (GetOppositDir(windDir) == dir)
-            return 1 / (windPow + 1);
-        return Math.Max((windPow + 1) / 2, 1);
+        if (windDirection == dir)
+            return windPower + 1;
+        if (GetOppositDir(windDirection) == dir)
+            return 1 / (windPower + 1);
+        return Math.Max((windPower + 1) / 2, 1);
     }
 
     public void UpdateFire()
     {
         var fire = new List<(int, int)>();
-        for (var x = 0; x < Size; x++)
-            for (var y = 0; y < Size; y++)
-                if (Grid[x][y].ImageId == 7)
+        for (var x = 0; x < Width; x++)
+            for (var y = 0; y < Height; y++)
+                if (Grid[y][x].ImageId == 7)
                 {
                     fire.Add((x, y));
-                    Grid[x][y].UpdateTile(x, y, 7, TileSize);
-                    Grid[x][y].FireCounter++;
-                    if (Grid[x][y].FireCounter >= 15)
-                        Grid[x][y].UpdateTile(x, y, 1, TileSize);
+                    Grid[y][x].UpdateTile(x, y, 7, TileSize);
+                    Grid[y][x].FireCounter++;
+                    if (Grid[y][x].FireCounter > 15)
+                        Grid[y][x].UpdateTile(x, y, 1, TileSize);
                 }
         foreach (var (x, y) in fire)
             for (var i = 0; i < 4; i++)
             {
-                var nx = x + moves[i].x;
-                var ny = y + moves[i].y;
-                if (Rand(10 * Wind((Direction)i)) && CheckBounds(nx, ny, Size) && CanBurn(nx, ny))
+                var nX = x + moves[i].x;
+                var nY = y + moves[i].y;
+                if (Rand(10 * Wind((Direction)i)) && CheckBounds(nX, nY, Width, Height) && CanBurn(nX, nY))
                 {
-                    Grid[nx][ny].UpdateTile(nx, ny, 7, TileSize);
-                    Grid[nx][ny].FireCounter++;
+                    Grid[nY][nX].UpdateTile(nX, nY, 7, TileSize);
+                    Grid[nY][nX].FireCounter++;
                 }
             }
     }
 
     public void GenerateTree()
     {
-        var (x, y) = RandCell(Size, Size);
-        if (Grid[x][y].ImageId == 0)
-            Grid[x][y].UpdateTile(x, y, RandSymbol(3) + 2, TileSize);
+        var (x, y) = RandCell(Width, Height);
+        if (Grid[y][x].ImageId == 0)
+            Grid[y][x].UpdateTile(x, y, RandNumber(3) + 2, TileSize);
     }
 
     public void UpdateGrass()
     {
-        for (var x = 0; x < Size; x++)
-            for (var y = 0; y < Size; y++)
-                if (Grid[x][y].ImageId == 0)
+        for (var x = 0; x < Width; x++)
+            for (var y = 0; y < Height; y++)
+                if (Grid[y][x].ImageId == 0)
                     for (var i = 0; i < 4; i++)
                     {
-                        var nx = x + moves[i].x;
-                        var ny = y + moves[i].y;
-                        if (Rand(15) && CheckBounds(nx, ny, Size) && Grid[nx][ny].ImageId == 1)
-                            Grid[nx][ny].UpdateTile(nx, ny, 0, TileSize);
+                        var nX = x + moves[i].x;
+                        var nY = y + moves[i].y;
+                        if (Rand(15) && CheckBounds(nX, nY, Width, Height) && Grid[nY][nX].ImageId == 1)
+                            Grid[nY][nX].UpdateTile(nX, nY, 0, TileSize);
                     }
     }
 
-    public int WindPowerClouds() => 2 + (9 - windPow) * 3;
+    public int WindPowerClouds() => 20 + (9 - windPower) * 3;
 
     public void ProcessCloud()
     {
-        for (var i = 0; i < Size; i++)
-            for (var j = 0; j < Size; j++)
-                if (cloudMap[i][j].ImageId == 2 && Grid[i][j].ImageId == 7)
+        for (var i = 0; i < Width; i++)
+            for (var j = 0; j < Height; j++)
+                if (CloudMap[j][i].ImageId == 2 && Grid[j][i].ImageId == 7)
                 {
-                    Grid[i][j].UpdateTile(i, j, 0, Size);
-                    cloudMap[i][j].UpdateTile(i, j, 1, Size);
+                    Grid[j][i].UpdateTile(i, j, 0, Width);
+                    CloudMap[j][i].UpdateTile(i, j, 1, Height);
                 }
+    }
+
+    public Vector2 GenerateNearRiver(int id)
+    {
+        var river = new List<(int, int)>();
+        for (var x = 0; x < Width; x++)
+            for (var y = 0; y < Height; y++)
+                if (Grid[y][x].ImageId == 5)
+                    river.Add((x, y));
+        var (rX, rY) = river[RandNumber(river.Count)];
+        Grid[rY][rX].UpdateTile(rX, rY, id, TileSize);
+        return new Vector2(rX * TileSize, rY * TileSize);
+    }
+
+    public Vector2 CalculateTextPos(int x, int y)
+    {
+        return new Vector2(x * TileSize, Height * TileSize + y * TileSize - 2);
     }
 }

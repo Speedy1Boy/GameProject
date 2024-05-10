@@ -1,8 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using System.Collections.Generic;
-using static GameProject.Utils;
 
 namespace GameProject;
 
@@ -12,6 +10,14 @@ internal class Player
     private readonly Map map;
     private Vector2 position;
     private Vector2 velocity;
+    private int tank;
+    private int hp;
+    private int money;
+
+    public int MaxHP { get; set; }
+    public int MaxTank { get; set; }
+    public bool ShowOptions { get; private set; }
+
     public Vector2 Velocity
     {
         get => velocity;
@@ -25,15 +31,22 @@ internal class Player
         }
     }
 
-    public Player(Texture2D texture, Map map)
+    public Player(Texture2D texture, Map map, int maxTank = 20, int maxHP = 20)
     {
         this.texture = texture;
         this.map = map;
-        position = SpawnNearRiver();
+        position = map.SpawnCoords;
+        MaxTank = maxTank;
+        tank = maxTank;
+        MaxHP = maxHP;
+        hp = maxHP;
+        money = 2500;
     }
 
-    public void Update()
+    public void Update(long ticks)
     {
+        if (IsDead()) return;
+
         if (Keyboard.GetState().IsKeyDown(Keys.W))
         {
             Velocity -= new Vector2(0, 0.1f);
@@ -73,56 +86,99 @@ internal class Player
         }
 
         position += Velocity;
-        CheckCollisions();
+        CheckCollisions(ticks);
         CheckCoordinatesInMap();
     }
 
     public void Draw(SpriteBatch spriteBatch)
     {
         spriteBatch.Draw(texture, position, Color.White);
+        var stats = $"HP: {hp} / {MaxHP}, Tank: {tank} / {MaxTank}, Money: {money}";
+        spriteBatch.DrawString(map.Font, stats, map.CalculateTextPos(1, 1), Color.White);
     }
 
-    public void CheckCoordinatesInMap()
+    private void CheckCoordinatesInMap()
     {
-        var maxCord = (map.Size - 1) * map.TileSize;
+        var mX = (map.Width - 1) * map.TileSize;
+        var mY = (map.Height - 1) * map.TileSize;
         if (position.X < 0) position.X = 0;
-        if (position.X > maxCord) position.X = maxCord;
+        if (position.X > mX) position.X = mX;
         if (position.Y < 0) position.Y = 0;
-        if (position.Y > maxCord) position.Y = maxCord;
+        if (position.Y > mY) position.Y = mY;
     }
 
-    public void CheckCollisions()
+    private void CheckCollisions(long ticks)
     {
         var playerCollider = new Rectangle((int)position.X, (int)position.Y, map.TileSize, map.TileSize);
-        for (var x = 0; x < map.Size; x++)
-            for (var y = 0; y < map.Size; y++)
+        for (var x = 0; x < map.Width; x++)
+            for (var y = 0; y < map.Height; y++)
             {
-                var objectCollider = map.Grid[x][y].Collider;
-                if (map.Grid[x][y].ImageId == 6)
+                var objectCollider = map.Grid[y][x].Collider;
+                if (!playerCollider.Intersects(objectCollider))
                 {
-                    if (playerCollider.Intersects(objectCollider))
+                    if (map.Grid[y][x].ImageId == 9) ShowOptions = false;
+                }
+                if (playerCollider.Intersects(objectCollider))
+                {
+                    if (map.Grid[y][x].ImageId == 6)
                     {
                         position -= velocity;
                         Velocity = Vector2.Zero;
                     }
-                }
-                if (map.Grid[x][y].ImageId == 7)
-                {
-                    if (playerCollider.Intersects(objectCollider))
+                    if (map.Grid[y][x].ImageId == 7 && !IsEmptyTank() && ticks % 5 == 0)
                     {
-                        map.Grid[x][y].UpdateTile(x, y, 0, map.TileSize);
+                        map.Grid[y][x].UpdateTile(x, y, 0, map.TileSize);
+                        DropWater();
+                        money += 20;
+                    }
+                    if (map.CloudMap[y][x].ImageId == 3) Damage();
+                    if (map.Grid[y][x].ImageId == 8 && velocity == Vector2.Zero && ticks % 15 == 0)
+                    {
+                        Heal();
+                    }
+                    if (map.Grid[y][x].ImageId == 9)
+                    {
+                        ShowOptions = true;
+                        return;
+                    }
+                    if (map.Grid[y][x].ImageId == 5 && velocity == Vector2.Zero && ticks % 10 == 0)
+                    {
+                        AddWater();
+                        return;
                     }
                 }
             }
     }
 
-    public Vector2 SpawnNearRiver()
+    private void AddWater()
     {
-        var river = new List<Vector2>();
-        for (var x = 0; x < map.Size; x++)
-            for (var y = 0; y < map.Size; y++)
-                if (map.Grid[x][y].ImageId == 5)
-                    river.Add(new Vector2(x * map.TileSize, y * map.TileSize));
-        return river[RandSymbol(river.Count)];
+        tank = MathHelper.Min(tank + 1, MaxTank);
     }
+
+    private void DropWater()
+    {
+        if (!IsEmptyTank()) tank--;
+    }
+
+    private void Heal()
+    {
+        hp = MathHelper.Min(hp + 1, MaxHP);
+    }
+
+    private void Damage(int dmg = 1)
+    {
+        hp = MathHelper.Max(0, hp - dmg);
+    }
+
+    public void Pay(int cost)
+    {
+        if (CanPay(cost))
+            money -= cost;
+    }
+
+    public bool IsEmptyTank() => tank == 0;
+
+    public bool IsDead() => hp == 0;
+
+    public bool CanPay(int cost) => money >= cost;
 }

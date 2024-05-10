@@ -7,70 +7,87 @@ namespace GameProject;
 
 public class FirefighterSimulator : Game
 {
-    private readonly GraphicsDeviceManager _graphics;
-    private SpriteBatch _spriteBatch;
+    private readonly GraphicsDeviceManager graphics;
+    private SpriteBatch spriteBatch;
+    private SpriteFont minecraft;
     private readonly List<Texture2D> mapTiles = new();
     private readonly List<Texture2D> cloudTiles = new();
     private Map map;
-    private Player player;
-    private Clouds clouds;
+    private Player helicopter;
+    private CloudMap clouds;
+    private Shop shop;
+    private Texture2D cell;
 
     public FirefighterSimulator()
     {
-        _graphics = new GraphicsDeviceManager(this);
+        graphics = new GraphicsDeviceManager(this);
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
     }
 
     protected override void Initialize()
     {
-        _graphics.PreferredBackBufferWidth = 800;
-        _graphics.PreferredBackBufferHeight = 800;
-        _graphics.ApplyChanges();
+        graphics.PreferredBackBufferWidth = 800;
+        graphics.PreferredBackBufferHeight = 800;
+        graphics.ApplyChanges();
         Window.Title = "Firefighter simulator";
         base.Initialize();
     }
 
     protected override void LoadContent()
     {
-        _spriteBatch = new SpriteBatch(GraphicsDevice);
+        spriteBatch = new SpriteBatch(GraphicsDevice);
 
-        mapTiles.Add(Content.Load<Texture2D>("Grass"));
-        mapTiles.Add(Content.Load<Texture2D>("DeadGrass"));
-        mapTiles.Add(Content.Load<Texture2D>("Tree"));
-        mapTiles.Add(Content.Load<Texture2D>("Wood"));
-        mapTiles.Add(Content.Load<Texture2D>("Plant"));
-        mapTiles.Add(Content.Load<Texture2D>("Water"));
-        mapTiles.Add(Content.Load<Texture2D>("Cliff"));
-        mapTiles.Add(Content.Load<Texture2D>("Fire"));
+        minecraft = Content.Load<SpriteFont>("Fonts/Minecraft");
 
-        cloudTiles.Add(Content.Load<Texture2D>("Clear"));
-        cloudTiles.Add(Content.Load<Texture2D>("Cloud"));
-        cloudTiles.Add(Content.Load<Texture2D>("Rain"));
-        cloudTiles.Add(Content.Load<Texture2D>("Thunder"));
+        mapTiles.Add(Content.Load<Texture2D>("Map/Grass"));
+        mapTiles.Add(Content.Load<Texture2D>("Map/DeadGrass"));
+        mapTiles.Add(Content.Load<Texture2D>("Map/Tree"));
+        mapTiles.Add(Content.Load<Texture2D>("Map/Wood"));
+        mapTiles.Add(Content.Load<Texture2D>("Map/Plant"));
+        mapTiles.Add(Content.Load<Texture2D>("Map/Water"));
+        mapTiles.Add(Content.Load<Texture2D>("Map/Cliff"));
+        mapTiles.Add(Content.Load<Texture2D>("Map/Fire"));
+        mapTiles.Add(Content.Load<Texture2D>("Map/Hospital"));
+        mapTiles.Add(Content.Load<Texture2D>("Map/Shop"));
 
-        map = new Map(50, mapTiles);
-        clouds = new Clouds(map.Size, cloudTiles);
-        player = new Player(Content.Load<Texture2D>("Player"), map);
+        cloudTiles.Add(Content.Load<Texture2D>("CloudMap/Clear"));
+        cloudTiles.Add(Content.Load<Texture2D>("CloudMap/Cloud"));
+        cloudTiles.Add(Content.Load<Texture2D>("CloudMap/Rain"));
+        cloudTiles.Add(Content.Load<Texture2D>("CloudMap/Thunder"));
+
+        cell = Content.Load<Texture2D>("Cell");
+
+        map = new Map(50, 45, mapTiles, minecraft);
+        clouds = new CloudMap(map.Width, map.Height, cloudTiles);
+        helicopter = new Player(Content.Load<Texture2D>("Player/Helicopter"), map);
+        shop = new Shop(map, helicopter);
     }
 
     protected override void Update(GameTime gameTime)
     {
-        if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
+        if (Keyboard.GetState().IsKeyDown(Keys.Escape))
             Exit();
-        player.Update();
-        map.Update(clouds);
+        map.Update(gameTime.TotalGameTime, clouds);
+        shop.Update(gameTime.TotalGameTime.Ticks);
+        helicopter.Update(gameTime.TotalGameTime.Ticks);
         base.Update(gameTime);
     }
 
     protected override void Draw(GameTime gameTime)
     {
-        GraphicsDevice.Clear(Color.Green);
-        _spriteBatch.Begin();
-        map.Draw(_spriteBatch);
-        player.Draw(_spriteBatch);
-        clouds.Draw(_spriteBatch);
-        _spriteBatch.End();
+        GraphicsDevice.Clear(Color.Black);
+        spriteBatch.Begin();
+
+        for (var i = 0; i < map.Width; i++)
+            for (var j = 0; j < 5; j++)
+                spriteBatch.Draw(cell, new Vector2(i * map.TileSize, map.Height * map.TileSize + j * map.TileSize), Color.DarkSlateGray);
+        map.Draw(spriteBatch);
+        shop.Draw(spriteBatch);
+        helicopter.Draw(spriteBatch);
+        clouds.Draw(spriteBatch);
+
+        spriteBatch.End();
         base.Draw(gameTime);
     }
 }
