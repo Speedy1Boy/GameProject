@@ -9,6 +9,8 @@ internal class Shop
     private readonly Map map;
     private readonly Player helicopter;
     private int selectorPos;
+    private bool isPressedUp;
+    private bool isPressedDown;
 
     public int[][] Upgrades { get; }
 
@@ -23,33 +25,40 @@ internal class Shop
         };
     }
 
-    public void Update(long ticks)
+    public void Update()
     {
         if (helicopter.IsDead() || !helicopter.ShowOptions) return;
 
-        if (Keyboard.GetState().IsKeyDown(Keys.Q) && ticks % 7 == 0)
+        if (Keyboard.GetState().IsKeyDown(Keys.Q) && !isPressedUp)
         {
             if (selectorPos == 0) selectorPos = Upgrades.Length - 1;
             else selectorPos--;
+            isPressedUp = true;
         }
-        if (Keyboard.GetState().IsKeyDown(Keys.E) && ticks % 7 == 0)
+        if (Keyboard.GetState().IsKeyDown(Keys.E) && !isPressedDown)
         {
             if (selectorPos == Upgrades.Length - 1) selectorPos = 0;
             else selectorPos++;
+            isPressedDown = true;
         }
-        if (Keyboard.GetState().IsKeyDown(Keys.Enter) && ticks % 7 == 0)
+        if (Keyboard.GetState().IsKeyDown(Keys.Enter))
         {
-            if (helicopter.CanPay(Upgrades[selectorPos][1]))
+            var option = Upgrades[selectorPos];
+            if (helicopter.CanPay(option[1]))
             {
-                Upgrades[selectorPos][0]++;
+                option[0]++;
                 if (selectorPos == 0)
                     helicopter.MaxHP++;
                 else
                     helicopter.MaxTank++;
-                helicopter.Pay(Upgrades[selectorPos][1]);
-                Upgrades[selectorPos][1] += 100;
+                helicopter.Pay(option[1]);
+                option[1] += 100;
             }
         }
+        if (Keyboard.GetState().IsKeyUp(Keys.Q) && isPressedUp)
+            isPressedUp = false;
+        if (Keyboard.GetState().IsKeyUp(Keys.E) && isPressedDown)
+            isPressedDown = false;
     }
 
     public void Draw(SpriteBatch spriteBatch)

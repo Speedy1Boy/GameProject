@@ -1,6 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System;
 using System.Collections.Generic;
 using static GameProject.Utils;
 
@@ -47,25 +46,24 @@ internal class Map
         windPower = RandNumber(10);
     }
 
-    public void Update(TimeSpan gameTime, CloudMap clouds)
+    public void Update(long ticks, CloudMap clouds)
     {
-        var tick = gameTime.Ticks;
         CloudMap = clouds.Map;
 
-        if (tick % 250 == 0) GenerateTree();
-        if (tick % 500 == 0) UpdateGrass();
-        if (tick % 250 == 0) StartFire();
-        if (tick % 200 == 0) UpdateFire();
+        if (ticks % 250 == 0) GenerateTree();
+        if (ticks % 500 == 0) UpdateGrass();
+        if (ticks % 250 == 0) StartFire();
+        if (ticks % 200 == 0) UpdateFire();
 
-        if (tick % 2500 == 0)
+        if (ticks % 2500 == 0)
         {
             windDirection = RandDir();
             windPower = RandNumber(10);
         }
 
-        if (tick % WindPowerClouds() == 0)
+        if (ticks % WindPowerClouds() == 0)
             clouds.MoveCloud(windDirection);
-        if (tick % 25 == 0) ProcessCloud();
+        if (ticks % 25 == 0) ProcessCloud();
     }
 
     public void Draw(SpriteBatch spriteBatch)
@@ -143,7 +141,7 @@ internal class Map
             return windPower + 1;
         if (GetOppositDir(windDirection) == dir)
             return 1 / (windPower + 1);
-        return Math.Max((windPower + 1) / 2, 1);
+        return MathHelper.Max((windPower + 1) / 2, 1);
     }
 
     public void UpdateFire()

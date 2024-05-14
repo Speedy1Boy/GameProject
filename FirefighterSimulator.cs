@@ -68,8 +68,8 @@ public class FirefighterSimulator : Game
     {
         if (Keyboard.GetState().IsKeyDown(Keys.Escape))
             Exit();
-        map.Update(gameTime.TotalGameTime, clouds);
-        shop.Update(gameTime.TotalGameTime.Ticks);
+        map.Update(gameTime.TotalGameTime.Ticks, clouds);
+        shop.Update();
         helicopter.Update(gameTime.TotalGameTime.Ticks);
         base.Update(gameTime);
     }

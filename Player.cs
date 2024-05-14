@@ -85,6 +85,8 @@ internal class Player
             if (Velocity.X < 0 && Velocity.X > -0.1f) Velocity = new Vector2(0, Velocity.Y);
         }
 
+        if (ticks % 50 == 0) money++;
+
         position += Velocity;
         CheckCollisions(ticks);
         CheckCoordinatesInMap();
@@ -131,11 +133,8 @@ internal class Player
                         DropWater();
                         money += 20;
                     }
-                    if (map.CloudMap[y][x].ImageId == 3) Damage();
-                    if (map.Grid[y][x].ImageId == 8 && velocity == Vector2.Zero && ticks % 15 == 0)
-                    {
-                        Heal();
-                    }
+                    if (map.CloudMap[y][x].ImageId == 3 && ticks % 2 == 0) Damage();
+                    if (map.Grid[y][x].ImageId == 8 && velocity == Vector2.Zero && ticks % 15 == 0) Heal();
                     if (map.Grid[y][x].ImageId == 9)
                     {
                         ShowOptions = true;
