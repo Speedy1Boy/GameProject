@@ -12,11 +12,10 @@ public class FirefighterSimulator : Game
     private SpriteFont minecraft;
     private readonly List<Texture2D> mapTiles = new();
     private readonly List<Texture2D> cloudTiles = new();
-    private Map map;
+    private MapModel map;
     private Player helicopter;
     private CloudMap clouds;
     private Shop shop;
-    private Texture2D cell;
 
     public FirefighterSimulator()
     {
@@ -50,17 +49,16 @@ public class FirefighterSimulator : Game
         mapTiles.Add(Content.Load<Texture2D>("Map/Fire"));
         mapTiles.Add(Content.Load<Texture2D>("Map/Hospital"));
         mapTiles.Add(Content.Load<Texture2D>("Map/Shop"));
+        mapTiles.Add(Content.Load<Texture2D>("Cell"));
 
         cloudTiles.Add(Content.Load<Texture2D>("CloudMap/Clear"));
         cloudTiles.Add(Content.Load<Texture2D>("CloudMap/Cloud"));
         cloudTiles.Add(Content.Load<Texture2D>("CloudMap/Rain"));
         cloudTiles.Add(Content.Load<Texture2D>("CloudMap/Thunder"));
 
-        cell = Content.Load<Texture2D>("Cell");
-
-        map = new Map(50, 45, mapTiles, minecraft);
-        clouds = new CloudMap(map.Width, map.Height, cloudTiles);
-        helicopter = new Player(Content.Load<Texture2D>("Player/Helicopter"), map);
+        map = new MapModel(50, 45, mapTiles, minecraft);
+        clouds = new CloudMap(map, cloudTiles);
+        helicopter = new Player(Content.Load<Texture2D>("Player/Helicopter"), clouds);
         shop = new Shop(map, helicopter);
     }
 
@@ -68,9 +66,14 @@ public class FirefighterSimulator : Game
     {
         if (Keyboard.GetState().IsKeyDown(Keys.Escape))
             Exit();
-        map.Update(gameTime.TotalGameTime.Ticks, clouds);
-        shop.Update();
-        helicopter.Update(gameTime.TotalGameTime.Ticks);
+
+        var ticks = gameTime.TotalGameTime.Ticks;
+
+        MapController.Update(ticks, map);
+        PlayerController.Update(ticks, helicopter);
+        CloudsController.Update(ticks, clouds);
+        ShopController.Update(helicopter, shop);
+
         base.Update(gameTime);
     }
 
@@ -79,13 +82,10 @@ public class FirefighterSimulator : Game
         GraphicsDevice.Clear(Color.Black);
         spriteBatch.Begin();
 
-        for (var i = 0; i < map.Width; i++)
-            for (var j = 0; j < 5; j++)
-                spriteBatch.Draw(cell, new Vector2(i * map.TileSize, map.Height * map.TileSize + j * map.TileSize), Color.DarkSlateGray);
-        map.Draw(spriteBatch);
-        shop.Draw(spriteBatch);
-        helicopter.Draw(spriteBatch);
-        clouds.Draw(spriteBatch);
+        MapView.Draw(spriteBatch, map);
+        PlayerView.Draw(spriteBatch, helicopter);
+        CloudsView.Draw(spriteBatch, clouds);
+        ShopView.Draw(spriteBatch, shop);
 
         spriteBatch.End();
         base.Draw(gameTime);

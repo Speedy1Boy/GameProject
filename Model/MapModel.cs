@@ -5,21 +5,19 @@ using static GameProject.Utils;
 
 namespace GameProject;
 
-internal class Map
+public class MapModel
 {
-    private int windPower;
-    private Direction windDirection;
-
-    public int Width { get; private set; }
-    public int Height { get; private set; }
+    public int Width { get; }
+    public int Height { get; }
     public List<Texture2D> Tiles { get; }
     public int TileSize { get; }
     public Tile[][] Grid { get; }
-    public Tile[][] CloudMap { get; private set; }
-    public Vector2 SpawnCoords { get; private set; }
+    public Vector2 SpawnCoords { get; }
     public SpriteFont Font { get; }
+    public int WindPower { get; set; }
+    public Direction WindDirection { get; set; }
 
-    public Map(int width, int height, List<Texture2D> tiles, SpriteFont font)
+    public MapModel(int width, int height, List<Texture2D> tiles, SpriteFont font)
     {
         Width = width;
         Height = height;
@@ -42,38 +40,8 @@ internal class Map
         GenerateNearRiver(8);
         SpawnCoords = GenerateNearRiver(9);
 
-        windDirection = RandDir();
-        windPower = RandNumber(10);
-    }
-
-    public void Update(long ticks, CloudMap clouds)
-    {
-        CloudMap = clouds.Map;
-
-        if (ticks % 250 == 0) GenerateTree();
-        if (ticks % 500 == 0) UpdateGrass();
-        if (ticks % 250 == 0) StartFire();
-        if (ticks % 200 == 0) UpdateFire();
-
-        if (ticks % 2500 == 0)
-        {
-            windDirection = RandDir();
-            windPower = RandNumber(10);
-        }
-
-        if (ticks % WindPowerClouds() == 0)
-            clouds.MoveCloud(windDirection);
-        if (ticks % 25 == 0) ProcessCloud();
-    }
-
-    public void Draw(SpriteBatch spriteBatch)
-    {
-        for (var i = 0; i < Width; i++)
-            for (var j = 0; j < Height; j++)
-                spriteBatch.Draw(Tiles[Grid[j][i].ImageId], new Vector2(i * TileSize, j * TileSize), Color.White);
-
-        var stats = $"Wind direction is {windDirection}, wind power is {windPower + 1}";
-        spriteBatch.DrawString(Font, stats, CalculateTextPos(1, 3), Color.White);
+        WindDirection = RandDir();
+        WindPower = RandNumber(10);
     }
 
     public void GenerateForest(double prob)
@@ -135,13 +103,13 @@ internal class Map
 
     public double Wind(Direction dir)
     {
-        if (windPower == 0)
+        if (WindPower == 0)
             return 1;
-        if (windDirection == dir)
-            return windPower + 1;
-        if (GetOppositDir(windDirection) == dir)
-            return 1 / (windPower + 1);
-        return MathHelper.Max((windPower + 1) / 2, 1);
+        if (WindDirection == dir)
+            return WindPower + 1;
+        if (GetOppositDir(WindDirection) == dir)
+            return 1 / (WindPower + 1);
+        return MathHelper.Max((WindPower + 1) / 2, 1);
     }
 
     public void UpdateFire()
@@ -191,18 +159,7 @@ internal class Map
                     }
     }
 
-    public int WindPowerClouds() => 20 + (9 - windPower) * 3;
-
-    public void ProcessCloud()
-    {
-        for (var i = 0; i < Width; i++)
-            for (var j = 0; j < Height; j++)
-                if (CloudMap[j][i].ImageId == 2 && Grid[j][i].ImageId == 7)
-                {
-                    Grid[j][i].UpdateTile(i, j, 0, Width);
-                    CloudMap[j][i].UpdateTile(i, j, 1, Height);
-                }
-    }
+    public int WindPowerClouds() => 20 + (9 - WindPower) * 3;
 
     public Vector2 GenerateNearRiver(int id)
     {

@@ -2,7 +2,7 @@
 
 namespace GameProject;
 
-struct Tile
+public struct Tile
 {
     public int ImageId { get; private set; }
     public Rectangle Collider { get; private set; }
