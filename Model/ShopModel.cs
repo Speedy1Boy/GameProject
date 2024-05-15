@@ -3,17 +3,17 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace GameProject;
 
-public class Shop
+public class ShopModel
 {
     public MapModel Map { get; }
-    public Player Helicopter { get; }
+    public PlayerModel Helicopter { get; }
     public int[][] Upgrades { get; }
     public int SelectorPos { get; set; }
     public bool IsPressed { get; set; }
     public bool IsPressedUp { get; set; }
     public bool IsPressedDown { get; set; }
 
-    public Shop(MapModel map, Player helicopter)
+    public ShopModel(MapModel map, PlayerModel helicopter)
     {
         Map = map;
         Helicopter = helicopter;
@@ -30,6 +30,6 @@ public class Shop
             $"+{Upgrades[optionNumber][0]} -> +{Upgrades[optionNumber][0] + 1}   " +
             $"Cost: {Upgrades[optionNumber][1]}";
         var color = SelectorPos == optionNumber ? Color.LightGreen : Color.White;
-        spriteBatch.DrawString(Map.Font, text, Map.CalculateTextPos(30, pos), color);
+        spriteBatch.DrawString(Map.Font, text, Map.CalculateBottomTextPos(30, pos), color);
     }
 }

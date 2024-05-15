@@ -5,51 +5,54 @@ namespace GameProject;
 
 public class PlayerController
 {
-    public static void Update(long ticks, Player player)
+    public static void Update(long ticks, PlayerModel player)
     {
         if (player.IsDead()) return;
 
-        if (Keyboard.GetState().IsKeyDown(Keys.W))
+        var keyboardState = Keyboard.GetState();
+
+        if (keyboardState.IsKeyDown(Keys.W))
         {
             player.Velocity -= new Vector2(0, 0.1f);
         }
-        if (Keyboard.GetState().IsKeyDown(Keys.S))
+        if (keyboardState.IsKeyDown(Keys.S))
         {
             player.Velocity += new Vector2(0, 0.1f);
         }
-        if (Keyboard.GetState().IsKeyDown(Keys.A))
+        if (keyboardState.IsKeyDown(Keys.A))
         {
             player.Velocity -= new Vector2(0.1f, 0);
         }
-        if (Keyboard.GetState().IsKeyDown(Keys.D))
+        if (keyboardState.IsKeyDown(Keys.D))
         {
             player.Velocity += new Vector2(0.1f, 0);
         }
 
-        if (Keyboard.GetState().IsKeyUp(Keys.W))
+        if (keyboardState.IsKeyUp(Keys.W))
         {
             if (player.Velocity.Y < 0) player.Velocity += new Vector2(0, 0.1f);
-            if (player.Velocity.Y > 0 && player.Velocity.Y < 0.1f) player.Velocity = new Vector2(player.Velocity.X, 0);
+            if (player.CheckPositiveVelocity(player.Velocity.Y)) player.Velocity = new Vector2(player.Velocity.X, 0);
         }
-        if (Keyboard.GetState().IsKeyUp(Keys.S))
+        if (keyboardState.IsKeyUp(Keys.S))
         {
             if (player.Velocity.Y > 0) player.Velocity -= new Vector2(0, 0.1f);
-            if (player.Velocity.Y < 0 && player.Velocity.Y > -0.1f) player.Velocity = new Vector2(player.Velocity.X, 0);
+            if (player.CheckNegativeVelocity(player.Position.Y)) player.Velocity = new Vector2(player.Velocity.X, 0);
         }
-        if (Keyboard.GetState().IsKeyUp(Keys.A))
+        if (keyboardState.IsKeyUp(Keys.A))
         {
             if (player.Velocity.X < 0) player.Velocity += new Vector2(0.1f, 0);
-            if (player.Velocity.X > 0 && player.Velocity.X < 0.1f) player.Velocity = new Vector2(0, player.Velocity.Y);
+            if (player.CheckPositiveVelocity(player.Velocity.X)) player.Velocity = new Vector2(0, player.Velocity.Y);
         }
-        if (Keyboard.GetState().IsKeyUp(Keys.D))
+        if (keyboardState.IsKeyUp(Keys.D))
         {
             if (player.Velocity.X > 0) player.Velocity -= new Vector2(0.1f, 0);
-            if (player.Velocity.X < 0 && player.Velocity.X > -0.1f) player.Velocity = new Vector2(0, player.Velocity.Y);
+            if (player.CheckNegativeVelocity(player.Position.X)) player.Velocity = new Vector2(0, player.Velocity.Y);
         }
 
         if (ticks % 50 == 0) player.Money++;
 
         player.Position += player.Velocity;
+
         player.CheckCollisions(ticks);
         player.CheckCoordinatesInMap();
     }

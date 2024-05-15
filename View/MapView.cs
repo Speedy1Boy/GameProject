@@ -15,12 +15,12 @@ public class MapView
                     Color.White);
 
             for (var k = 0; k < 5; k++)
-                spriteBatch.Draw(map.Tiles[10],
+                spriteBatch.Draw(map.Tiles[0],
                     new Vector2(i * map.TileSize, map.Height * map.TileSize + k * map.TileSize),
                     Color.DarkSlateGray);
         }
 
         var stats = $"Wind direction is {map.WindDirection}, wind power is {map.WindPower + 1}";
-        spriteBatch.DrawString(map.Font, stats, map.CalculateTextPos(1, 3), Color.White);
+        spriteBatch.DrawString(map.Font, stats, map.CalculateBottomTextPos(1, 3), Color.White);
     }
 }

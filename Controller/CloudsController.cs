@@ -2,9 +2,9 @@
 
 public class CloudsController
 {
-    public static void Update(long ticks, CloudMap clouds)
+    public static void Update(long ticks, CloudsModel clouds)
     {
-        if (ticks % clouds.MapModel.WindPowerClouds() == 0)
+        if (ticks % clouds.MapModel.WindPowerCloudsUpdate() == 0)
             clouds.MoveCloud(clouds.MapModel.WindDirection);
         if (ticks % 25 == 0) clouds.ProcessCloud();
     }

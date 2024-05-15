@@ -4,19 +4,19 @@ using static GameProject.Utils;
 
 namespace GameProject;
 
-public class CloudMap
+public class CloudsModel
 {
     private readonly int rainProb;
     private readonly int thunderProb;
 
     public int Width { get; }
     public int Height { get; }
-    public Tile[][] Map { get; }
+    public Tile[][] CloudMap { get; }
     public List<Texture2D> TextureList { get; }
     public int TileSize { get; }
     public MapModel MapModel { get; }
 
-    public CloudMap(MapModel mapModel, List<Texture2D> textureList)
+    public CloudsModel(MapModel mapModel, List<Texture2D> textureList)
     {
         Width = mapModel.Width;
         Height = mapModel.Height;
@@ -27,12 +27,12 @@ public class CloudMap
         rainProb = 20;
         thunderProb = 30;
 
-        Map = new Tile[Height][];
+        CloudMap = new Tile[Height][];
         for (var j = 0; j < Height; j++)
         {
-            Map[j] = new Tile[Width];
+            CloudMap[j] = new Tile[Width];
             for (var i = 0; i < Width; i++)
-                Map[j][i].UpdateTile(i, j, 0, TileSize);
+                CloudMap[j][i].UpdateTile(i, j, 0, TileSize);
         }
         GenerateCloud(2.5);
     }
@@ -43,24 +43,24 @@ public class CloudMap
             for (var j = 0; j < Height; j++)
                 if (Rand(prob))
                 {
-                    Map[j][i].UpdateTile(i, j, 1, TileSize);
+                    CloudMap[j][i].UpdateTile(i, j, 1, TileSize);
                     if (Rand(rainProb))
-                        Map[j][i].UpdateTile(i, j, 2, TileSize);
-                    if (Map[j][i].ImageId == 2 && Rand(thunderProb))
-                        Map[j][i].UpdateTile(i, j, 3, TileSize);
+                        CloudMap[j][i].UpdateTile(i, j, 2, TileSize);
+                    if (CloudMap[j][i].ImageId == 2 && Rand(thunderProb))
+                        CloudMap[j][i].UpdateTile(i, j, 3, TileSize);
                 }
     }
 
-    public void GenerateBorderCloud(int amount, Direction dir)
+    public void GenerateBorderClouds(int amount, Direction dir)
     {
         for (var i = 0; i < amount; i++)
         {
             var (x, y) = RandBorderCell(Width, Height, dir);
-            Map[y][x].UpdateTile(x, y, 1, TileSize);
+            CloudMap[y][x].UpdateTile(x, y, 1, TileSize);
             if (Rand(rainProb))
-                Map[y][x].UpdateTile(x, y, 2, TileSize);
-            if (Map[y][x].ImageId == 2 && Rand(thunderProb))
-                Map[y][x].UpdateTile(x, y, 3, TileSize);
+                CloudMap[y][x].UpdateTile(x, y, 2, TileSize);
+            if (CloudMap[y][x].ImageId == 2 && Rand(thunderProb))
+                CloudMap[y][x].UpdateTile(x, y, 3, TileSize);
         }
     }
 
@@ -69,16 +69,16 @@ public class CloudMap
         var clouds = new List<(int, int)>();
         for (var i = 0; i < Width; i++)
             for (var j = 0; j < Height; j++)
-                if (Map[j][i].ImageId != 0)
+                if (CloudMap[j][i].ImageId != 0)
                     clouds.Add((i, j));
         foreach (var (x, y) in clouds)
         {
             var nX = x + moves[(int)dir].x;
             var nY = y + moves[(int)dir].y;
             if (0 <= nX && nX < Width && 0 <= nY && nY < Height)
-                Map[nY][nX] = Map[y][x];
-            else GenerateBorderCloud(RandNumber(3), dir);
-            Map[y][x].UpdateTile(x, y, 0, TileSize);
+                CloudMap[nY][nX] = CloudMap[y][x];
+            else GenerateBorderClouds(RandNumber(3), dir);
+            CloudMap[y][x].UpdateTile(x, y, 0, TileSize);
         }
     }
 
@@ -86,10 +86,11 @@ public class CloudMap
     {
         for (var i = 0; i < Width; i++)
             for (var j = 0; j < Height; j++)
-                if (Map[j][i].ImageId == 2 && MapModel.Grid[j][i].ImageId == 7)
+                if (CloudMap[j][i].ImageId == 2 && MapModel.Grid[j][i].ImageId == 3)
                 {
-                    MapModel.Grid[j][i].UpdateTile(i, j, 0, Width);
-                    Map[j][i].UpdateTile(i, j, 1, Height);
+                    MapModel.Grid[j][i].UpdateTile(i, j, 4, Width);
+                    MapModel.Grid[j][i].FireCounter = 0;
+                    CloudMap[j][i].UpdateTile(i, j, 1, Height);
                 }
     }
 }

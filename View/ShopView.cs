@@ -4,7 +4,7 @@ namespace GameProject;
 
 public class ShopView
 {
-    public static void Draw(SpriteBatch spriteBatch, Shop shop)
+    public static void Draw(SpriteBatch spriteBatch, ShopModel shop)
     {
         if (shop.Helicopter.ShowOptions)
         {

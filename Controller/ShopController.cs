@@ -4,23 +4,25 @@ namespace GameProject;
 
 public class ShopController
 {
-    public static void Update(Player player, Shop shop)
+    public static void Update(PlayerModel player, ShopModel shop)
     {
         if (player.IsDead() || !player.ShowOptions) return;
 
-        if (Keyboard.GetState().IsKeyDown(Keys.Q) && !shop.IsPressedUp)
+        var state = Keyboard.GetState();
+
+        if (state.IsKeyDown(Keys.Q) && !shop.IsPressedUp)
         {
             if (shop.SelectorPos == 0) shop.SelectorPos = shop.Upgrades.Length - 1;
             else shop.SelectorPos--;
             shop.IsPressedUp = true;
         }
-        if (Keyboard.GetState().IsKeyDown(Keys.E) && !shop.IsPressedDown)
+        if (state.IsKeyDown(Keys.E) && !shop.IsPressedDown)
         {
             if (shop.SelectorPos == shop.Upgrades.Length - 1) shop.SelectorPos = 0;
             else shop.SelectorPos++;
             shop.IsPressedDown = true;
         }
-        if (Keyboard.GetState().IsKeyDown(Keys.Enter) && !shop.IsPressed)
+        if (state.IsKeyDown(Keys.Enter) && !shop.IsPressed)
         {
             var option = shop.Upgrades[shop.SelectorPos];
             if (player.CanPay(option[1]))
@@ -35,11 +37,11 @@ public class ShopController
             }
             shop.IsPressed = true;
         }
-        if (Keyboard.GetState().IsKeyUp(Keys.Q) && shop.IsPressedUp)
+        if (state.IsKeyUp(Keys.Q) && shop.IsPressedUp)
             shop.IsPressedUp = false;
-        if (Keyboard.GetState().IsKeyUp(Keys.E) && shop.IsPressedDown)
+        if (state.IsKeyUp(Keys.E) && shop.IsPressedDown)
             shop.IsPressedDown = false;
-        if (Keyboard.GetState().IsKeyUp(Keys.Enter) && shop.IsPressed)
+        if (state.IsKeyUp(Keys.Enter) && shop.IsPressed)
             shop.IsPressed = false;
     }
 }

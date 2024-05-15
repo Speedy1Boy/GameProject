@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 using System.Collections.Generic;
+using System.IO;
 
 namespace GameProject;
 
@@ -9,13 +9,13 @@ public class FirefighterSimulator : Game
 {
     private readonly GraphicsDeviceManager graphics;
     private SpriteBatch spriteBatch;
-    private SpriteFont minecraft;
+    private SpriteFont minecraftFont;
     private readonly List<Texture2D> mapTiles = new();
     private readonly List<Texture2D> cloudTiles = new();
     private MapModel map;
-    private Player helicopter;
-    private CloudMap clouds;
-    private Shop shop;
+    private PlayerModel helicopter;
+    private CloudsModel clouds;
+    private ShopModel shop;
 
     public FirefighterSimulator()
     {
@@ -37,36 +37,32 @@ public class FirefighterSimulator : Game
     {
         spriteBatch = new SpriteBatch(GraphicsDevice);
 
-        minecraft = Content.Load<SpriteFont>("Fonts/Minecraft");
+        minecraftFont = Content.Load<SpriteFont>("Fonts/Minecraft");
 
-        mapTiles.Add(Content.Load<Texture2D>("Map/Grass"));
-        mapTiles.Add(Content.Load<Texture2D>("Map/DeadGrass"));
-        mapTiles.Add(Content.Load<Texture2D>("Map/Tree"));
-        mapTiles.Add(Content.Load<Texture2D>("Map/Wood"));
-        mapTiles.Add(Content.Load<Texture2D>("Map/Plant"));
-        mapTiles.Add(Content.Load<Texture2D>("Map/Water"));
-        mapTiles.Add(Content.Load<Texture2D>("Map/Cliff"));
-        mapTiles.Add(Content.Load<Texture2D>("Map/Fire"));
-        mapTiles.Add(Content.Load<Texture2D>("Map/Hospital"));
-        mapTiles.Add(Content.Load<Texture2D>("Map/Shop"));
-        mapTiles.Add(Content.Load<Texture2D>("Cell"));
+        var directory = new DirectoryInfo($"{Content.RootDirectory}/Map");
+        var files = directory.GetFiles();
+        foreach (var file in files)
+        {
+            var name = Path.GetFileNameWithoutExtension(file.Name);
+            mapTiles.Add(Content.Load<Texture2D>($"Map/{name}"));
+        }
 
-        cloudTiles.Add(Content.Load<Texture2D>("CloudMap/Clear"));
-        cloudTiles.Add(Content.Load<Texture2D>("CloudMap/Cloud"));
-        cloudTiles.Add(Content.Load<Texture2D>("CloudMap/Rain"));
-        cloudTiles.Add(Content.Load<Texture2D>("CloudMap/Thunder"));
+        var dirInfo = new DirectoryInfo($"{Content.RootDirectory}/CloudMap");
+        var filesInfo = dirInfo.GetFiles();
+        foreach (var fileInfo in filesInfo)
+        {
+            var fileName = Path.GetFileNameWithoutExtension(fileInfo.Name);
+            cloudTiles.Add(Content.Load<Texture2D>($"CloudMap/{fileName}"));
+        }
 
-        map = new MapModel(50, 45, mapTiles, minecraft);
-        clouds = new CloudMap(map, cloudTiles);
-        helicopter = new Player(Content.Load<Texture2D>("Player/Helicopter"), clouds);
-        shop = new Shop(map, helicopter);
+        map = new MapModel(50, 45, mapTiles, minecraftFont);
+        clouds = new CloudsModel(map, cloudTiles);
+        helicopter = new PlayerModel(Content.Load<Texture2D>("Player/Helicopter"), clouds);
+        shop = new ShopModel(map, helicopter);
     }
 
     protected override void Update(GameTime gameTime)
     {
-        if (Keyboard.GetState().IsKeyDown(Keys.Escape))
-            Exit();
-
         var ticks = gameTime.TotalGameTime.Ticks;
 
         MapController.Update(ticks, map);
@@ -80,14 +76,14 @@ public class FirefighterSimulator : Game
     protected override void Draw(GameTime gameTime)
     {
         GraphicsDevice.Clear(Color.Black);
-        spriteBatch.Begin();
 
+        spriteBatch.Begin();
         MapView.Draw(spriteBatch, map);
         PlayerView.Draw(spriteBatch, helicopter);
         CloudsView.Draw(spriteBatch, clouds);
         ShopView.Draw(spriteBatch, shop);
-
         spriteBatch.End();
+
         base.Draw(gameTime);
     }
 }

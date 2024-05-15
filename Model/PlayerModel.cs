@@ -3,14 +3,14 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace GameProject;
 
-public class Player
+public class PlayerModel
 {
     private Vector2 position;
     private Vector2 velocity;
 
     public Texture2D Texture { get; }
     public MapModel Map { get; }
-    public CloudMap Clouds { get; }
+    public CloudsModel Clouds { get; }
     public int MaxTank { get; set; }
     public int Tank { get; set; }
     public int MaxHP { get; set; }
@@ -32,7 +32,7 @@ public class Player
         }
     }
 
-    public Player(Texture2D texture, CloudMap clouds, int maxTank = 20, int maxHP = 20)
+    public PlayerModel(Texture2D texture, CloudsModel clouds, int maxTank = 20, int maxHP = 20)
     {
         Texture = texture;
         Clouds = clouds;
@@ -54,29 +54,30 @@ public class Player
                 var objectCollider = Map.Grid[y][x].Collider;
                 if (!playerCollider.Intersects(objectCollider))
                 {
-                    if (Map.Grid[y][x].ImageId == 9) ShowOptions = false;
+                    if (Map.Grid[y][x].ImageId == 6) ShowOptions = false;
                 }
                 if (playerCollider.Intersects(objectCollider))
                 {
-                    if (Map.Grid[y][x].ImageId == 6)
+                    if (Map.Grid[y][x].ImageId == 1)
                     {
                         position -= velocity;
                         Velocity = Vector2.Zero;
                     }
-                    if (Map.Grid[y][x].ImageId == 7 && !IsEmptyTank() && ticks % 5 == 0)
+                    if (Map.Grid[y][x].ImageId == 3 && !IsEmptyTank() && ticks % 5 == 0)
                     {
-                        Map.Grid[y][x].UpdateTile(x, y, 0, Map.TileSize);
+                        Map.Grid[y][x].UpdateTile(x, y, 4, Map.TileSize);
+                        Map.Grid[y][x].FireCounter = 0;
                         DropWater();
                         Money += 20;
                     }
-                    if (Clouds.Map[y][x].ImageId == 3 && ticks % 2 == 0) Damage();
-                    if (Map.Grid[y][x].ImageId == 8 && velocity == Vector2.Zero && ticks % 15 == 0) Heal();
-                    if (Map.Grid[y][x].ImageId == 9)
+                    if (Clouds.CloudMap[y][x].ImageId == 3 && ticks % 2 == 0) Damage();
+                    if (Map.Grid[y][x].ImageId == 5 && velocity == Vector2.Zero && ticks % 15 == 0) Heal();
+                    if (Map.Grid[y][x].ImageId == 6)
                     {
                         ShowOptions = true;
                         return;
                     }
-                    if (Map.Grid[y][x].ImageId == 5 && velocity == Vector2.Zero && ticks % 10 == 0)
+                    if (Map.Grid[y][x].ImageId == 10 && velocity == Vector2.Zero && ticks % 10 == 0)
                     {
                         AddWater();
                         return;
@@ -126,4 +127,8 @@ public class Player
     public bool IsDead() => Hp == 0;
 
     public bool CanPay(int cost) => Money >= cost;
+
+    public bool CheckPositiveVelocity(float n) => n > 0 && n < 0.1f;
+
+    public bool CheckNegativeVelocity(float n) => n < 0 && n > -0.1f;
 }
