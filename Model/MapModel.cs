@@ -175,7 +175,7 @@ public class MapModel
         return new Vector2(rX * TileSize, rY * TileSize);
     }
 
-    public Vector2 CalculateBottomTextPos(int x, int y)
+    public Vector2 CalculateBottomTextPos(float x, float y)
     {
         return new Vector2(x * TileSize, Height * TileSize + y * TileSize - 2);
     }

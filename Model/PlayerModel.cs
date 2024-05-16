@@ -8,7 +8,7 @@ public class PlayerModel
     private Vector2 position;
     private Vector2 velocity;
 
-    public Texture2D Texture { get; }
+    public Texture2D[] Textures { get; }
     public MapModel Map { get; }
     public CloudsModel Clouds { get; }
     public int MaxTank { get; set; }
@@ -17,6 +17,7 @@ public class PlayerModel
     public int Hp { get; set; }
     public int Money { get; set; }
     public bool ShowOptions { get; private set; }
+    public Direction Direction { get; set; }
 
     public Vector2 Position { get => position; set => position = value; }
     public Vector2 Velocity
@@ -32,9 +33,9 @@ public class PlayerModel
         }
     }
 
-    public PlayerModel(Texture2D texture, CloudsModel clouds, int maxTank = 20, int maxHP = 20)
+    public PlayerModel(Texture2D[] textures, CloudsModel clouds, int maxTank = 20, int maxHP = 20)
     {
-        Texture = texture;
+        Textures = textures;
         Clouds = clouds;
         Map = clouds.MapModel;
         position = Map.SpawnCoords;
@@ -47,7 +48,7 @@ public class PlayerModel
 
     public void CheckCollisions(long ticks)
     {
-        var playerCollider = new Rectangle((int)position.X, (int)position.Y, Map.TileSize, Map.TileSize);
+        var playerCollider = new Rectangle((int)position.X + 1, (int)position.Y + 1, Map.TileSize - 1, Map.TileSize - 1);
         for (var x = 0; x < Map.Width; x++)
             for (var y = 0; y < Map.Height; y++)
             {
@@ -128,7 +129,7 @@ public class PlayerModel
 
     public bool CanPay(int cost) => Money >= cost;
 
-    public bool CheckPositiveVelocity(float n) => n > 0 && n < 0.1f;
+    public static bool CheckPositiveVelocity(float n) => n > 0 && n < 0.1f;
 
-    public bool CheckNegativeVelocity(float n) => n < 0 && n > -0.1f;
+    public static bool CheckNegativeVelocity(float n) => n < 0 && n > -0.1f;
 }

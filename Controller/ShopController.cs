@@ -25,7 +25,7 @@ public class ShopController
         if (state.IsKeyDown(Keys.Enter) && !shop.IsPressed)
         {
             var option = shop.Upgrades[shop.SelectorPos];
-            if (player.CanPay(option[1]))
+            if (player.CanPay(option[1]) && option[0] < shop.MaxUpgrade)
             {
                 option[0]++;
                 if (shop.SelectorPos == 0)
