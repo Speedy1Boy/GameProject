@@ -9,8 +9,8 @@ namespace GameProject;
 
 public class FirefighterSimulator : Game
 {
-    const int WindowWidth = 800;
-    const int WindowHeight = 800;
+    private const int windowWidth = 800;
+    private const int windowHeight = 800;
 
     private readonly GraphicsDeviceManager graphics;
     private SpriteBatch spriteBatch;
@@ -32,8 +32,8 @@ public class FirefighterSimulator : Game
 
     protected override void Initialize()
     {
-        graphics.PreferredBackBufferWidth = WindowWidth;
-        graphics.PreferredBackBufferHeight = WindowHeight;
+        graphics.PreferredBackBufferWidth = windowWidth;
+        graphics.PreferredBackBufferHeight = windowHeight;
         graphics.ApplyChanges();
         Window.Title = "Firefighter simulator";
         Window.ClientSizeChanged += Window_ClientSizeChanged;
@@ -69,7 +69,7 @@ public class FirefighterSimulator : Game
             Content.Load<Texture2D>("Player/HelicopterRight")
         };
 
-        map = new MapModel(WindowWidth / 16, WindowHeight / 16 - 5, mapTiles, minecraftFont, Window);
+        map = new MapModel(windowWidth / 16, windowHeight / 16 - 5, mapTiles, minecraftFont, Window);
         clouds = new CloudsModel(map, cloudTiles);
         helicopter = new PlayerModel(helicopterSprites, clouds);
         shop = new ShopModel(map, helicopter);
@@ -114,13 +114,13 @@ public class FirefighterSimulator : Game
 
     private void DrawInfo()
     {
-        if (isPaused) WriteInfoLine("Pause", 1.5f);
-        if (helicopter.IsDead()) WriteInfoLine("Game Over", 1.75f);
+        if (isPaused) WriteInfoLine("Pause", 1.5f, Color.Black);
+        if (helicopter.IsDead()) WriteInfoLine("Game Over", 1.75f, Color.Red);
     }
 
-    private void WriteInfoLine(string line, float scale)
+    private void WriteInfoLine(string line, float scale, Color color)
     {
-        spriteBatch.DrawString(minecraftFont, line, GetInfoText(-2), Color.Black,
+        spriteBatch.DrawString(minecraftFont, line, GetInfoText(-2), color,
             0, Vector2.Zero, map.GetMultiplier() * scale, SpriteEffects.None, 0);
     }
 
@@ -134,10 +134,10 @@ public class FirefighterSimulator : Game
     {
         Window.ClientSizeChanged -= Window_ClientSizeChanged;
 
-        graphics.PreferredBackBufferWidth = Window.ClientBounds.Width < WindowWidth
-            ? WindowWidth : Window.ClientBounds.Width;
-        graphics.PreferredBackBufferHeight = Window.ClientBounds.Height < WindowHeight
-            ? WindowHeight : Window.ClientBounds.Height;
+        graphics.PreferredBackBufferWidth = Window.ClientBounds.Width < windowWidth
+            ? windowWidth : Window.ClientBounds.Width;
+        graphics.PreferredBackBufferHeight = Window.ClientBounds.Height < windowHeight
+            ? windowHeight : Window.ClientBounds.Height;
 
         graphics.ApplyChanges();
         Window.ClientSizeChanged += Window_ClientSizeChanged;

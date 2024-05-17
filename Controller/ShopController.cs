@@ -10,13 +10,13 @@ public class ShopController
 
         var state = Keyboard.GetState();
 
-        if (state.IsKeyDown(Keys.Q) && !shop.IsPressedUp)
+        if (state.IsKeyDown(Keys.Up) && !shop.IsPressedUp)
         {
             if (shop.SelectorPos == 0) shop.SelectorPos = shop.Upgrades.Length - 1;
             else shop.SelectorPos--;
             shop.IsPressedUp = true;
         }
-        if (state.IsKeyDown(Keys.E) && !shop.IsPressedDown)
+        if (state.IsKeyDown(Keys.Down) && !shop.IsPressedDown)
         {
             if (shop.SelectorPos == shop.Upgrades.Length - 1) shop.SelectorPos = 0;
             else shop.SelectorPos++;
@@ -37,9 +37,9 @@ public class ShopController
             }
             shop.IsPressed = true;
         }
-        if (state.IsKeyUp(Keys.Q) && shop.IsPressedUp)
+        if (state.IsKeyUp(Keys.Up) && shop.IsPressedUp)
             shop.IsPressedUp = false;
-        if (state.IsKeyUp(Keys.E) && shop.IsPressedDown)
+        if (state.IsKeyUp(Keys.Down) && shop.IsPressedDown)
             shop.IsPressedDown = false;
         if (state.IsKeyUp(Keys.Enter) && shop.IsPressed)
             shop.IsPressed = false;

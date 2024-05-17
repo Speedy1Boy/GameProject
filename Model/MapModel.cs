@@ -14,7 +14,7 @@ public class MapModel
     public Tile[][] Grid { get; }
     public Vector2 SpawnCoords { get; }
     public SpriteFont Font { get; }
-    public GameWindow Window { get; set; }
+    public GameWindow Window { get; }
     public int WindPower { get; set; }
     public Direction WindDirection { get; set; }
 
@@ -214,4 +214,10 @@ public class MapModel
     }
 
     public float GetMultiplier() => GetNewTileSize() / (float)TileSize;
+
+    public bool IsSquare() => Width == Height + 5;
+
+    public int StatLeftAlign() => IsSquare() ? 1 : Width / 5;
+
+    public int StatRightAlign() => IsSquare() ? Width - 17 : Width * 3 / 5;
 }

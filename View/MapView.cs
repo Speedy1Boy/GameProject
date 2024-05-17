@@ -19,9 +19,8 @@ public class MapView
                     map.GetDestinationRectangle(i, map.Height + k),
                     Color.DarkSlateGray);
         }
-
         var stats = $"Wind direction is {map.WindDirection}, wind power is {map.WindPower + 1}";
-        spriteBatch.DrawString(map.Font, stats, map.CalculateBottomTextPos(1, 3),
+        spriteBatch.DrawString(map.Font, stats, map.CalculateBottomTextPos(map.StatLeftAlign(), 3),
             Color.White, 0, Vector2.Zero, map.GetMultiplier(), SpriteEffects.None, 0);
     }
 }
