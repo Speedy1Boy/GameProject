@@ -1,5 +1,4 @@
-﻿using Microsoft.Xna.Framework;
-using static GameProject.Utils;
+﻿using static GameProject.Utils;
 
 namespace GameProject;
 

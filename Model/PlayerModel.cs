@@ -76,7 +76,6 @@ public class PlayerModel
                     if (Map.Grid[y][x].ImageId == 6)
                     {
                         ShowOptions = true;
-                        return;
                     }
                     if (Map.Grid[y][x].ImageId == 10 && velocity == Vector2.Zero && ticks % 10 == 0)
                     {

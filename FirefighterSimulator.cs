@@ -9,8 +9,8 @@ namespace GameProject;
 
 public class FirefighterSimulator : Game
 {
-    const int WindowWidth = 1280;
-    const int WindowHeight = 720;
+    const int WindowWidth = 800;
+    const int WindowHeight = 800;
 
     private readonly GraphicsDeviceManager graphics;
     private SpriteBatch spriteBatch;
@@ -114,12 +114,14 @@ public class FirefighterSimulator : Game
 
     private void DrawInfo()
     {
-        if (isPaused)
-            spriteBatch.DrawString(minecraftFont, "Pause", GetInfoText(-2), Color.White,
-                0, Vector2.Zero, map.GetMultiplier(), SpriteEffects.None, 0);
-        if (helicopter.IsDead())
-            spriteBatch.DrawString(minecraftFont, "Game Over", GetInfoText(-6), Color.Red,
-                0, Vector2.Zero, map.GetMultiplier() * 1.5f, SpriteEffects.None, 0);
+        if (isPaused) WriteInfoLine("Pause", 1.5f);
+        if (helicopter.IsDead()) WriteInfoLine("Game Over", 1.75f);
+    }
+
+    private void WriteInfoLine(string line, float scale)
+    {
+        spriteBatch.DrawString(minecraftFont, line, GetInfoText(-2), Color.Black,
+            0, Vector2.Zero, map.GetMultiplier() * scale, SpriteEffects.None, 0);
     }
 
     private Vector2 GetInfoText(int d)
@@ -131,6 +133,7 @@ public class FirefighterSimulator : Game
     private void Window_ClientSizeChanged(object sender, EventArgs e)
     {
         Window.ClientSizeChanged -= Window_ClientSizeChanged;
+
         graphics.PreferredBackBufferWidth = Window.ClientBounds.Width < WindowWidth
             ? WindowWidth : Window.ClientBounds.Width;
         graphics.PreferredBackBufferHeight = Window.ClientBounds.Height < WindowHeight
