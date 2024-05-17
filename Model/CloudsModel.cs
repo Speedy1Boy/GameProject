@@ -1,5 +1,4 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
+﻿using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
 using static GameProject.Utils;
 
@@ -23,6 +22,7 @@ public class CloudsModel
         Height = mapModel.Height;
         TextureList = textureList;
         TileSize = 16;
+
         MapModel = mapModel;
 
         rainProb = 20;
@@ -93,15 +93,5 @@ public class CloudsModel
                     MapModel.Grid[j][i].FireCounter = 0;
                     CloudMap[j][i].UpdateTile(i, j, 1, Height);
                 }
-    }
-
-    public void ChangeCloudMapPos()
-    {
-        for (var x = 0; x < Width; x++)
-            for (var y = 0; y < Height; y++)
-            {
-                var (nX, nY) = MapModel.CalculateNewPos(x, y);
-                CloudMap[y][x].Collider = new Rectangle(nX, nY, TileSize, TileSize);
-            }
     }
 }

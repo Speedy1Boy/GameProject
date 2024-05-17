@@ -1,14 +1,17 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace GameProject;
 
 public class FirefighterSimulator : Game
 {
+    const int WindowWidth = 1280;
+    const int WindowHeight = 720;
+
     private readonly GraphicsDeviceManager graphics;
     private SpriteBatch spriteBatch;
     private MapModel map;
@@ -29,8 +32,8 @@ public class FirefighterSimulator : Game
 
     protected override void Initialize()
     {
-        graphics.PreferredBackBufferWidth = 800;
-        graphics.PreferredBackBufferHeight = 800;
+        graphics.PreferredBackBufferWidth = WindowWidth;
+        graphics.PreferredBackBufferHeight = WindowHeight;
         graphics.ApplyChanges();
         Window.Title = "Firefighter simulator";
         Window.ClientSizeChanged += Window_ClientSizeChanged;
@@ -66,7 +69,7 @@ public class FirefighterSimulator : Game
             Content.Load<Texture2D>("Player/HelicopterRight")
         };
 
-        map = new MapModel(50, 45, mapTiles, minecraftFont, Window);
+        map = new MapModel(WindowWidth / 16, WindowHeight / 16 - 5, mapTiles, minecraftFont, Window);
         clouds = new CloudsModel(map, cloudTiles);
         helicopter = new PlayerModel(helicopterSprites, clouds);
         shop = new ShopModel(map, helicopter);
@@ -112,12 +115,11 @@ public class FirefighterSimulator : Game
     private void DrawInfo()
     {
         if (isPaused)
-            spriteBatch.DrawString(minecraftFont, "Pause",
-                GetInfoText(-2), Color.Black);
+            spriteBatch.DrawString(minecraftFont, "Pause", GetInfoText(-2), Color.White,
+                0, Vector2.Zero, map.GetMultiplier(), SpriteEffects.None, 0);
         if (helicopter.IsDead())
-            spriteBatch.DrawString(minecraftFont, "Game Over",
-                GetInfoText(-6), Color.Red, 0,
-                Vector2.Zero, 1.5f, SpriteEffects.None, 0);
+            spriteBatch.DrawString(minecraftFont, "Game Over", GetInfoText(-6), Color.Red,
+                0, Vector2.Zero, map.GetMultiplier() * 1.5f, SpriteEffects.None, 0);
     }
 
     private Vector2 GetInfoText(int d)
@@ -129,8 +131,10 @@ public class FirefighterSimulator : Game
     private void Window_ClientSizeChanged(object sender, EventArgs e)
     {
         Window.ClientSizeChanged -= Window_ClientSizeChanged;
-        graphics.PreferredBackBufferWidth = Window.ClientBounds.Width < 800 ? 800 : Window.ClientBounds.Width;
-        graphics.PreferredBackBufferHeight = Window.ClientBounds.Height < 800 ? 800 : Window.ClientBounds.Height;
+        graphics.PreferredBackBufferWidth = Window.ClientBounds.Width < WindowWidth
+            ? WindowWidth : Window.ClientBounds.Width;
+        graphics.PreferredBackBufferHeight = Window.ClientBounds.Height < WindowHeight
+            ? WindowHeight : Window.ClientBounds.Height;
 
         graphics.ApplyChanges();
         Window.ClientSizeChanged += Window_ClientSizeChanged;

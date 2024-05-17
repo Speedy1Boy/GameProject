@@ -179,37 +179,39 @@ public class MapModel
 
     public Vector2 CalculateBottomTextPos(int x, int y)
     {
-        var pos = CalculateNewVectorPos(x, Height + y);
-        return new Vector2(pos.X, pos.Y - 2);
-    }
-
-    public void ChangeMapPos()
-    {
-        for (var x = 0; x < Width; x++)
-            for (var y = 0; y < Height; y++)
-            {
-                var (nX, nY) = CalculateNewPos(x, y);
-                Grid[y][x].Collider = new Rectangle(nX, nY, TileSize, TileSize);
-            }
+        var (nX, nY) = CalculateNewPos(x, Height + y);
+        return new Vector2(nX, nY - 2);
     }
 
     public (int, int) CalculateNewPos(int x, int y)
     {
-        return (GetCenteredX() + x * TileSize, GetCenteredY() + y * TileSize);
+        return (GetCenteredX() + x * GetNewTileSize(), GetCenteredY() + y * GetNewTileSize());
     }
 
-    public Vector2 CalculateNewVectorPos(int x, int y)
+    public int GetCenteredX() => Window.ClientBounds.Width / 2 - (int)(Width / (float)2 * GetNewTileSize());
+
+    public int GetCenteredY() => Window.ClientBounds.Height / 2 - (int)((Height + 5) / (float)2 * GetNewTileSize());
+
+    public Rectangle GetDestinationRectangle(int x, int y)
     {
         var (nX, nY) = CalculateNewPos(x, y);
-        return new Vector2(nX, nY);
+        var tileSize = GetNewTileSize();
+        return new Rectangle(nX, nY, tileSize, tileSize);
     }
 
-    public Vector2 CalculateHelicopterWindowPos(Vector2 playerPos)
+    public int GetNewTileSize()
     {
-        return new Vector2(GetCenteredX() + playerPos.X, GetCenteredY() + playerPos.Y);
+        var mX = Window.ClientBounds.Width / Width;
+        var mY = Window.ClientBounds.Height / (Height + 5);
+        return MathHelper.Min(mX, mY);
     }
 
-    public int GetCenteredX() => Window.ClientBounds.Width / 2 - Width / 2 * TileSize;
+    public Rectangle GetPlayerDestinationRectangle(Vector2 position)
+    {
+        var tileSize = GetNewTileSize();
+        var m = GetMultiplier();
+        return new Rectangle(GetCenteredX() + (int)(position.X * m), GetCenteredY() + (int)(position.Y * m), tileSize, tileSize);
+    }
 
-    public int GetCenteredY() => Window.ClientBounds.Height / 2 - (Height + 5) / 2 * TileSize;
+    public float GetMultiplier() => GetNewTileSize() / (float)TileSize;
 }

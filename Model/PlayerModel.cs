@@ -48,8 +48,7 @@ public class PlayerModel
 
     public void CheckCollisions(long ticks)
     {
-        var windowPos = Map.CalculateHelicopterWindowPos(position);
-        var playerCollider = new Rectangle((int)windowPos.X + 1, (int)windowPos.Y + 1, Map.TileSize - 1, Map.TileSize - 1);
+        var playerCollider = new Rectangle((int)position.X + 1, (int)position.Y + 1, Map.TileSize - 1, Map.TileSize - 1);
         for (var x = 0; x < Map.Width; x++)
             for (var y = 0; y < Map.Height; y++)
             {

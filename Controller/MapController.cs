@@ -17,6 +17,5 @@ public class MapController
             map.WindDirection = RandDir();
             map.WindPower = RandNumber(10);
         }
-        map.ChangeMapPos();
     }
 }
