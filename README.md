@@ -2,7 +2,7 @@
 
 ## Firefighter simulator
 
-This game is about a fire helicopter. \
+This game is about a fire helicopter.
 
 ### Controls:
 * WASD - player
