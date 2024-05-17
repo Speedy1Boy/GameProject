@@ -11,12 +11,12 @@ public class MapView
         {
             for (var j = 0; j < map.Height; j++)
                 spriteBatch.Draw(map.Tiles[map.Grid[j][i].ImageId],
-                    new Vector2(i * map.TileSize, j * map.TileSize),
+                    map.CalculateNewVectorPos(i, j),
                     Color.White);
 
             for (var k = 0; k < 5; k++)
                 spriteBatch.Draw(map.Tiles[0],
-                    new Vector2(i * map.TileSize, map.Height * map.TileSize + k * map.TileSize),
+                    map.CalculateNewVectorPos(i, map.Height + k),
                     Color.DarkSlateGray);
         }
 

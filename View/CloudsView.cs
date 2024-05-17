@@ -10,7 +10,7 @@ public class CloudsView
         for (var i = 0; i < clouds.Width; i++)
             for (var j = 0; j < clouds.Height; j++)
                 spriteBatch.Draw(clouds.TextureList[clouds.CloudMap[j][i].ImageId],
-                    new Vector2(i * clouds.TileSize, j * clouds.TileSize),
+                    clouds.MapModel.CalculateNewVectorPos(i, j),
                     Color.White);
     }
 }

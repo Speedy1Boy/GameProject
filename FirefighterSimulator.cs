@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System.Collections.Generic;
+using System;
 using System.IO;
 
 namespace GameProject;
@@ -23,6 +24,7 @@ public class FirefighterSimulator : Game
         graphics = new GraphicsDeviceManager(this);
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
+        Window.AllowUserResizing = true;
     }
 
     protected override void Initialize()
@@ -31,6 +33,7 @@ public class FirefighterSimulator : Game
         graphics.PreferredBackBufferHeight = 800;
         graphics.ApplyChanges();
         Window.Title = "Firefighter simulator";
+        Window.ClientSizeChanged += Window_ClientSizeChanged;
         base.Initialize();
     }
 
@@ -63,7 +66,7 @@ public class FirefighterSimulator : Game
             Content.Load<Texture2D>("Player/HelicopterRight")
         };
 
-        map = new MapModel(50, 45, mapTiles, minecraftFont);
+        map = new MapModel(50, 45, mapTiles, minecraftFont, Window);
         clouds = new CloudsModel(map, cloudTiles);
         helicopter = new PlayerModel(helicopterSprites, clouds);
         shop = new ShopModel(map, helicopter);
@@ -110,10 +113,26 @@ public class FirefighterSimulator : Game
     {
         if (isPaused)
             spriteBatch.DrawString(minecraftFont, "Pause",
-                new Vector2(map.TileSize, map.TileSize - 2), Color.Black);
+                GetInfoText(-2), Color.Black);
         if (helicopter.IsDead())
             spriteBatch.DrawString(minecraftFont, "Game Over",
-                new Vector2(map.TileSize, map.TileSize - 6),
-                Color.Red, 0, Vector2.Zero, 1.5f, SpriteEffects.None, 0);
+                GetInfoText(-6), Color.Red, 0,
+                Vector2.Zero, 1.5f, SpriteEffects.None, 0);
+    }
+
+    private Vector2 GetInfoText(int d)
+    {
+        var (x, y) = map.CalculateNewPos(1, 1);
+        return new Vector2(x, y + d);
+    }
+
+    private void Window_ClientSizeChanged(object sender, EventArgs e)
+    {
+        Window.ClientSizeChanged -= Window_ClientSizeChanged;
+        graphics.PreferredBackBufferWidth = Window.ClientBounds.Width < 800 ? 800 : Window.ClientBounds.Width;
+        graphics.PreferredBackBufferHeight = Window.ClientBounds.Height < 800 ? 800 : Window.ClientBounds.Height;
+
+        graphics.ApplyChanges();
+        Window.ClientSizeChanged += Window_ClientSizeChanged;
     }
 }

@@ -31,6 +31,6 @@ public class ShopModel
         var upgrade = MathHelper.Min(Upgrades[optionNumber][0] + 1, MaxUpgrade);
         var text = $"{optionText} +{Upgrades[optionNumber][0]} -> +{upgrade}   Cost: {Upgrades[optionNumber][1]}";
         var color = SelectorPos == optionNumber ? Color.LightGreen : Color.White;
-        spriteBatch.DrawString(Map.Font, text, Map.CalculateBottomTextPos(Map.Width * 0.66f, pos), color);
+        spriteBatch.DrawString(Map.Font, text, Map.CalculateBottomTextPos(Map.Width - 17, pos), color);
     }
 }

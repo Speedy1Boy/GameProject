@@ -14,16 +14,18 @@ public class MapModel
     public Tile[][] Grid { get; }
     public Vector2 SpawnCoords { get; }
     public SpriteFont Font { get; }
+    public GameWindow Window { get; set; }
     public int WindPower { get; set; }
     public Direction WindDirection { get; set; }
 
-    public MapModel(int width, int height, List<Texture2D> tiles, SpriteFont font)
+    public MapModel(int width, int height, List<Texture2D> tiles, SpriteFont font, GameWindow window)
     {
         Width = width;
         Height = height;
         Tiles = tiles;
         TileSize = 16;
         Font = font;
+        Window = window;
 
         Grid = new Tile[height][];
         for (var y = 0; y < height; y++)
@@ -175,8 +177,39 @@ public class MapModel
         return new Vector2(rX * TileSize, rY * TileSize);
     }
 
-    public Vector2 CalculateBottomTextPos(float x, float y)
+    public Vector2 CalculateBottomTextPos(int x, int y)
     {
-        return new Vector2(x * TileSize, Height * TileSize + y * TileSize - 2);
+        var pos = CalculateNewVectorPos(x, Height + y);
+        return new Vector2(pos.X, pos.Y - 2);
     }
+
+    public void ChangeMapPos()
+    {
+        for (var x = 0; x < Width; x++)
+            for (var y = 0; y < Height; y++)
+            {
+                var (nX, nY) = CalculateNewPos(x, y);
+                Grid[y][x].Collider = new Rectangle(nX, nY, TileSize, TileSize);
+            }
+    }
+
+    public (int, int) CalculateNewPos(int x, int y)
+    {
+        return (GetCenteredX() + x * TileSize, GetCenteredY() + y * TileSize);
+    }
+
+    public Vector2 CalculateNewVectorPos(int x, int y)
+    {
+        var (nX, nY) = CalculateNewPos(x, y);
+        return new Vector2(nX, nY);
+    }
+
+    public Vector2 CalculateHelicopterWindowPos(Vector2 playerPos)
+    {
+        return new Vector2(GetCenteredX() + playerPos.X, GetCenteredY() + playerPos.Y);
+    }
+
+    public int GetCenteredX() => Window.ClientBounds.Width / 2 - Width / 2 * TileSize;
+
+    public int GetCenteredY() => Window.ClientBounds.Height / 2 - (Height + 5) / 2 * TileSize;
 }
