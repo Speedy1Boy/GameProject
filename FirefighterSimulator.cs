@@ -35,7 +35,7 @@ public class FirefighterSimulator : Game
         graphics.PreferredBackBufferWidth = windowWidth;
         graphics.PreferredBackBufferHeight = windowHeight;
         graphics.ApplyChanges();
-        Window.Title = "Firefighter simulator";
+        Window.Title = "Firefighter Simulator";
         Window.ClientSizeChanged += Window_ClientSizeChanged;
         base.Initialize();
     }
